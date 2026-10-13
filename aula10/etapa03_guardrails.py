@@ -125,7 +125,7 @@ MENSAGENS = {
 
 
 def main() -> None:
-    from extracao import INSTRUCOES_EXTRATOR, criar_extrator
+    from etapa02_extracao import INSTRUCOES_EXTRATOR, criar_extrator
 
     extrator = criar_extrator(INSTRUCOES_EXTRATOR, input_guardrails=[barrar_dado_sensivel, barrar_fora_do_escopo])
     for nome in ("C1_abono_simples", "C2_ferias_com_venda", "C3_dado_de_saude", "C4_fora_do_escopo",
