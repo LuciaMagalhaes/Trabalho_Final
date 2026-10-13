@@ -34,7 +34,6 @@ from dados_rh import PASTA
 load_dotenv(PASTA / ".env")
 SERVER = str(PASTA / "etapa05_mcp_rh.py")
 
-
 async def chamar_mcp_async(tool: str, argumentos: dict) -> dict:
     """(PRONTO) Sobe o MCP Server por stdio, abre a sessão e chama UMA tool pelo nome. Como no aula6/desafio2/main.py.
     Toda tool do etapa05_mcp_rh.py devolve UM dict, que chega como texto JSON no primeiro item de resposta.content."""
@@ -51,15 +50,13 @@ async def chamar_mcp_async(tool: str, argumentos: dict) -> dict:
                            f"Para ver o traceback: npx @modelcontextprotocol/inspector python etapa05_mcp_rh.py")
     return json.loads(resposta.content[0].text)
 
-
 def chamar_mcp(tool: str, argumentos: dict) -> dict:
     """(PRONTO) Versão síncrona, para os nós do grafo (Etapa 7) e o fluxo linear (Etapa 6).
     Dentro de código async (tools dos agentes), use `await chamar_mcp_async(...)`."""
     return asyncio.run(chamar_mcp_async(tool, argumentos))
 
-
 async def perguntar_ao_atendente(pergunta: str) -> str:
-    
+    """(PRONTO) Sobe o MCP Server por stdio, cria o AtendenteRH e roda a pergunta. O LLM decide se chama a tool ou não."""   
 
     async with MCPServerStdio(params={"command": sys.executable, "args": [SERVER]}, name="rh") as servidor:
         agente = Agent(
@@ -73,7 +70,6 @@ async def perguntar_ao_atendente(pergunta: str) -> str:
         )
         resultado = await Runner.run(agente, pergunta)
         return resultado.final_output
-
 
 if __name__ == "__main__":
     if "--agente" in sys.argv:

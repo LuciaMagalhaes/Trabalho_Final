@@ -68,9 +68,7 @@ def get_json_com_retry(url: str, tentativas: int = 3, espera_base: float = 0.5, 
                 raise
             time.sleep(espera_base * 2 ** (n - 1))  # backoff exponencial: 0.5 s, 1 s, 2 s...
 
-
 _CACHE_FERIADOS: dict[int, tuple[dict[str, str], str]] = {}
-
 
 def buscar_feriados(ano: int) -> tuple[dict[str, str], str]:
     """4.3 -- ({"2027-04-21": "Tiradentes", ...}, fonte). fonte: "brasilapi", "arquivo_local" ou "indisponivel".
@@ -87,12 +85,10 @@ def buscar_feriados(ano: int) -> tuple[dict[str, str], str]:
     _CACHE_FERIADOS[ano] = resultado
     return resultado
 
-
 def eh_dia_util(dia: date) -> bool:
     """Segunda a sexta e não feriado."""
     feriados, _ = buscar_feriados(dia.year)
     return dia.weekday() < 5 and dia.isoformat() not in feriados
-
 
 def dias_uteis(inicio: str, fim: str) -> int:
     """4.4 -- Dias úteis entre inicio e fim (AAAA-MM-DD), inclusive."""
@@ -102,7 +98,6 @@ def dias_uteis(inicio: str, fim: str) -> int:
         dia += timedelta(days=1)
     return total
 
-
 def data_retorno(fim: str) -> str:
     """4.4 -- O primeiro dia útil DEPOIS de `fim`."""
     dia = date.fromisoformat(fim) + timedelta(days=1)
@@ -110,13 +105,11 @@ def data_retorno(fim: str) -> str:
         dia += timedelta(days=1)
     return dia.isoformat()
 
-
 def inicio_permitido(inicio: str) -> bool:
     """4.4 -- Regra N3: as férias não podem começar nos 2 dias antes de feriado ou fim de semana.
     Ou seja: o dia de início e os 2 dias seguintes precisam ser úteis (por isso quinta e sexta nunca podem)."""
     dia = date.fromisoformat(inicio)
     return all(eh_dia_util(dia + timedelta(days=k)) for k in range(3))
-
 
 def cotacao_usd_brl() -> float | None:
     """4.5 -- Cotação USD->BRL de hoje, ou None se a API falhar (o Financeiro escreve "a calcular": NÃO inventa câmbio)."""
@@ -125,21 +118,17 @@ def cotacao_usd_brl() -> float | None:
     except Exception:
         return None
 
-
 def gerar_protocolo(matricula: str, tipo: str, data_inicio: str | None, data_fim: str | None) -> str:
     """4.6 -- 8 primeiros caracteres do SHA-256 dos campos normalizados. O MESMO pedido gera o MESMO protocolo
     (C1 e C8: 'ae788d33'), então gravar duas vezes não duplica: é a idempotência da Aula 3."""
     bruto = "|".join((campo or "").strip().lower() for campo in (matricula, tipo, data_inicio, data_fim))
     return hashlib.sha256(bruto.encode("utf-8")).hexdigest()[:8]
 
-
 class TempoEsgotado(Exception):
     """O agente demorou mais que o limite de tempo."""
 
-
 class LoopExcedido(Exception):
     """O agente passou de max_turns (está em loop)."""
-
 
 async def rodar_com_limites(agente: Agent, entrada: str, max_turns: int = 8, timeout_s: float = 90, **kwargs):
     """4.7 -- Runner.run com DOIS limites: tempo (wait_for) e voltas do loop (max_turns), cada um com o seu erro.
@@ -151,11 +140,9 @@ async def rodar_com_limites(agente: Agent, entrada: str, max_turns: int = 8, tim
     except MaxTurnsExceeded as erro:
         raise LoopExcedido(f"{agente.name} passou de {max_turns} turnos") from erro
 
-
 def rodar_com_limites_sync(agente: Agent, entrada: str, **kwargs):
     """Versão síncrona, para usar dentro dos nós do grafo e no fluxo linear."""
     return asyncio.run(rodar_com_limites(agente, entrada, **kwargs))
-
 
 if __name__ == "__main__":
     inicio = time.perf_counter()

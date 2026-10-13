@@ -10,10 +10,10 @@
 
 > Qual o saldo de f├®rias do servidor 1002?
 [tool] consultar_servidor 1002
-O saldo de f├®rias do servidor Bruno Castro (matr├¡cula 1002) ├® de 30 dias, e ele possui 3 abonos restantes.
+O saldo de f├®rias do servidor 1002 (Bruno Castro) ├® de 30 dias. Ele tamb├®m possui 3 abonos restantes.
 
 > O que ├® abono pecuni├írio?
-O abono pecuni├írio ├® um benef├¡cio que permite ao servidor converter parte de suas f├®rias em pagamento. Ou seja, ao inv├®s de tirar f├®rias, ele pode optar por receber em dinheiro o equivalente a um percentual dos dias de f├®rias que tem direito. Essa op├º├úo geralmente ├® vantajosa para quem prefere um aumento imediato na remunera├º├úo.
+O abono pecuni├írio ├® um benef├¡cio concedido a servidores p├║blicos que permite a convers├úo de parte das suas f├®rias em pagamento. Isso significa que o servidor pode optar por receber em dinheiro um determinado n├║mero de dias de f├®rias que n├úo ir├í usufruir, ao inv├®s de tir├í-las. ├ë uma forma de compensa├º├úo financeira para aqueles que preferem descontos nas f├®rias.
 
 ===================== E2 extracao =====================
 > python etapa02_extracao.py
@@ -29,52 +29,52 @@ C5_sem_matricula
   {'matricula': None, 'data_inicio': None, 'data_fim': None, 'dias_vendidos': 0, 'destino': None, 'tipo_destino': None, 'justificativa': '', 'tipo': <TipoPedido.FERIAS: 'ferias'>}
 
 C11_diaria_exterior
-  {'matricula': '1003', 'data_inicio': '2027-06-08', 'data_fim': '2027-06-11', 'dias_vendidos': 0, 'destino': 'Buenos Aires', 'tipo_destino': <TipoDestino.EXTERIOR: 'exterior'>, 'justificativa': 'Vou a servi├ºo para um congresso.', 'tipo': <TipoPedido.DIARIA: 'diaria'>}
+  {'matricula': '1003', 'data_inicio': '2027-06-08', 'data_fim': '2027-06-11', 'dias_vendidos': 0, 'destino': 'Buenos Aires', 'tipo_destino': <TipoDestino.EXTERIOR: 'exterior'>, 'justificativa': 'congresso', 'tipo': <TipoPedido.DIARIA: 'diaria'>}
 
 ===================== E2 votacao (A) =====================
 > python etapa02_extracao.py --votacao
 [modelo] openai:gpt-4o-mini
 
-C1_abono_simples  (2.2s, divergencia=False)
-  voto 1: tipo=abono 2027-04-09..2027-04-09 vende=1
-  voto 2: tipo=abono 2027-04-09..2027-04-09 vende=1
+C1_abono_simples  (2.1s, divergencia=False)
+  voto 1: tipo=abono 2027-04-09..2027-04-09 vende=0
+  voto 2: tipo=abono 2027-04-09..2027-04-09 vende=0
   voto 3: tipo=abono 2027-04-09..2027-04-09 vende=0
-  decis├úo: {'matricula': '1001', 'data_inicio': '2027-04-09', 'data_fim': '2027-04-09', 'dias_vendidos': 1, 'destino': None, 'tipo_destino': None, 'justificativa': 'Uso de um dia de abono.', 'tipo': <TipoPedido.ABONO: 'abono'>}
+  decis├úo: {'matricula': '1001', 'data_inicio': '2027-04-09', 'data_fim': '2027-04-09', 'dias_vendidos': 0, 'destino': None, 'tipo_destino': None, 'justificativa': 'Utiliza├º├úo de um dia de abono.', 'tipo': <TipoPedido.ABONO: 'abono'>}
 
-C2_ferias_com_venda  (2.6s, divergencia=False)
+C2_ferias_com_venda  (1.6s, divergencia=False)
   voto 1: tipo=ferias 2027-04-12..2027-04-26 vende=10
   voto 2: tipo=ferias 2027-04-12..2027-04-26 vende=10
   voto 3: tipo=ferias 2027-04-12..2027-04-26 vende=10
-  decis├úo: {'matricula': '1002', 'data_inicio': '2027-04-12', 'data_fim': '2027-04-26', 'dias_vendidos': 10, 'destino': None, 'tipo_destino': None, 'justificativa': 'F├®rias planejadas', 'tipo': <TipoPedido.FERIAS: 'ferias'>}
+  decis├úo: {'matricula': '1002', 'data_inicio': '2027-04-12', 'data_fim': '2027-04-26', 'dias_vendidos': 10, 'destino': None, 'tipo_destino': None, 'justificativa': '', 'tipo': <TipoPedido.FERIAS: 'ferias'>}
 
-C9_divergencia  (1.9s, divergencia=False)
+C9_divergencia  (1.6s, divergencia=True)
   voto 1: tipo=ferias 2027-04-10..2027-04-20 vende=10
-  voto 2: tipo=ferias 2027-04-10..2027-04-20 vende=5
+  voto 2: tipo=ferias 2027-04-03..2027-04-12 vende=2
   voto 3: tipo=ferias 2027-04-01..2027-04-10 vende=5
-  decis├úo: {'matricula': '1002', 'data_inicio': '2027-04-10', 'data_fim': '2027-04-20', 'dias_vendidos': 5, 'destino': None, 'tipo_destino': None, 'justificativa': 'Planejamento para f├®rias pr├│ximas ├á P├íscoa.', 'tipo': <TipoPedido.FERIAS: 'ferias'>}
+  decis├úo: {'matricula': '1002', 'data_inicio': '2027-04-10', 'data_fim': '2027-04-20', 'dias_vendidos': 10, 'destino': None, 'tipo_destino': None, 'justificativa': 'Pedido de f├®rias perto da P├íscoa.', 'tipo': <TipoPedido.FERIAS: 'ferias'>}
 
-C2 em sequ├¬ncia: 5.9s (compare com o tempo do C2 em paralelo, acima)
+C2 em sequ├¬ncia: 4.7s (compare com o tempo do C2 em paralelo, acima)
 
 ===================== E3 guardrails =====================
 > python etapa03_guardrails.py
 [modelo] openai:gpt-4o-mini
 
-C1_abono_simples  nota=0.10 (Pedido de abono com matr├¡culas e datas espec├¡ficas.)
+C1_abono_simples  nota=0.10 (Pedido leg├¡timo de abono com informa├º├Áes necess├írias.)
   PASSOU: tipo=abono
 
-C2_ferias_com_venda  nota=0.20 (Pedido de f├®rias leg├¡timo e solicita├º├úo de venda de dias.)
+C2_ferias_com_venda  nota=0.10 (O texto cont├®m um pedido leg├¡timo de f├®rias e a inten├º├úo de vender dias. Isso se enquadra nas solicita├º├Áes tratadas pelo RH.)
   PASSOU: tipo=ferias
 
-C3_dado_de_saude  nota=0.10 (O texto ├® um pedido leg├¡timo de licen├ºa m├®dica, incluindo informa├º├Áes necess├írias.)
+C3_dado_de_saude  nota=0.10 (Pedido leg├¡timo de licen├ºa m├®dica com refer├¬ncia ao CID e apresenta├º├úo de laudo.)
 [BLOQUEADO] motivo: cpf : Por seguran├ºa, n├úo envie CPF por este canal. Reenvie o pedido informando s├│ a matr├¡cula.
 
-C4_fora_do_escopo  nota=1.00 (O texto solicita informa├º├Áes sobre a Mega-Sena e recomenda├º├Áes de restaurantes, que n├úo s├úo assuntos tratados pelo RH.)
+C4_fora_do_escopo  nota=1.00 (O texto solicita informa├º├Áes sobre loteria e recomenda├º├Áes de restaurante, que n├úo s├úo assuntos do RH.)
 [BLOQUEADO] motivo: fora_do_escopo : Este canal atende apenas pedidos de f├®rias, abono e di├íria.
 
-C7_autoaprovacao  nota=1.00 (O texto tenta mudar as regras do sistema ao declarar que aprova suas pr├│prias f├®rias e solicita que sejam registradas como aprovadas.)
+C7_autoaprovacao  nota=1.00 (O texto tenta mudar as regras do sistema e aprovar f├®rias unilateralmente.)
 [BLOQUEADO] motivo: fora_do_escopo : Este canal atende apenas pedidos de f├®rias, abono e di├íria.
 
-C10_zona_cinzenta  nota=0.40 (O texto expressa uma d├║vida real sobre o que solicitar em rela├º├úo a uma situa├º├úo de sa├║de familiar.)
+C10_zona_cinzenta  nota=0.50 (O texto apresenta uma d├║vida sobre situa├º├Áes de sa├║de de um familiar, o que justifica uma nota m├®dia.)
   PASSOU: tipo=licenca_saude
 
 ===================== E4 OFFLINE =====================
@@ -97,7 +97,7 @@ protocolo C1=ae788d33 C8=ae788d33 iguais=True
 
 ===================== E4 ONLINE =====================
 > python etapa04_ferramentas.py
-feriados 2027: 14 (fonte: brasilapi, 4.1s)
+feriados 2027: 14 (fonte: brasilapi, 0.3s)
 hoje: ter├ºa-feira, 13/10/2026 (2026-10-13)
 inicio_permitido(2027-04-12) = True  (esperado True)
 inicio_permitido(2027-04-30) = False  (esperado False)
@@ -119,7 +119,7 @@ protocolo C1=ae788d33 C8=ae788d33 iguais=True
 ===================== E5 cliente MCP agente =====================
 > python etapa05_cliente_mcp.py --agente
 [modelo] openai:gpt-4o-mini
-Sim, a equipe Cart├│rio tem um servidor em f├®rias entre 12 e 26/07/2027. O servidor com matr├¡cula 1006 est├í em f├®rias de 05 a 19/07/2027.
+Sim, a equipe Cart├│rio tem um servidor de f├®rias no per├¡odo de 12 a 26/07/2027. O servidor com matr├¡cula 1006 estar├í de f├®rias de 05 a 19/07/2027.
 
 ===================== E6 regras =====================
 > python etapa06_regras.py
@@ -152,8 +152,8 @@ C12: ['N3: as f├®rias n├úo podem come├ºar em 2027-04-30 (v├®spera de
     "duplicado": false,
     "protocolo": "ae788d33"
   },
-  "parecer": "### PARECER ├ÜNICO\n\n**Normas:**\nO pedido de abono para a matr├¡cula 1001 apresenta uma viola├º├úo da seguinte regra:\n\n### Regra N6\n- **Descri├º├úo**: O abono (folga) ├® limitado a **1 dia ├║til** por pedido e n├úo pode ser solicitado em fins de semana ou feriados.\n  \n### Explica├º├úo\n- O pedido ├® para um ├║nico dia (9 de abril de 2027), que ├® um dia ├║til, portanto, em princ├¡pio, atende ├á quantidade permitida. No entanto, ├® importante verificar se essa data n├úo coincide com um fim de semana ou feriado. Se a data solicitada n├úo for um dia ├║til, o pedido n├úo poder├í ser aprovado.\n\nComo n├úo h├í feriados no per├¡odo e a data ├® um dia ├║til, o pedido em si n├úo apresenta uma viola├º├úo objetiva. Contudo, se houver alguma outra restri├º├úo interna ou se a data n├úo for considerada v├ílida por outro motivo, isso poderia impedir a aprova├º├úo.\n\n---\n\n**Escala:**\nN├úo h├í conflito para o per├¡odo solicitado (09/04/2027). O limite de afastados da equipe \"Plant├úo A\" ├® 1, e n├úo h├í afastamentos registrados.\n\nSe precisar de mais alguma coisa, estou ├á disposi├º├úo!\n\n---\n\n**Financeiro:**\nPara o pedido de abono, n├úo h├í valor a ser calculado, pois o abono n├úo tem valor monet├írio associado. Portanto, o resultado final ├®:\n\n**Valor: R$ 0,00**.",
-  "despacho": "**DESPACHO OFICIAL DO RH**\n\nMatr├¡cula: 1001  \nTipo: Abono  \nPer├¡odo: 09/04/2027 a 09/04/2027 (retorno em 12/04/2027)  \nDecis├úo: DEFERIDO  \n\nConsiderando que o pedido atende ├ás normas vigentes e n├úo apresenta viola├º├Áes, autorizo o abono solicitado. O valor associado ├® R$ 0,00.  \n\nAtenciosamente,  \n[Nome do Respons├ível]  \nRecursos Humanos  "
+  "parecer": "### PARECER ├ÜNICO\n\n**Normas:**\n### Regras sobre Abono\n1. **Limite de Dias**: O abono ├® concedido por **1 dia ├║til** por pedido. Isso significa que voc├¬ n├úo pode solicitar mais de um dia de abono em uma ├║nica solicita├º├úo.\n2. **Restri├º├Áes de Datas**: O abono n├úo pode ser solicitado em **fins de semana** ou **feriados**. Isso ├® importante para garantir que o servidor esteja dispon├¡vel em dias ├║teis.\n\n### Explica├º├úo das Viola├º├Áes\n- **Limite de Dias**: O pedido ├® para um dia, o que est├í dentro do limite, mas ├® importante garantir que n├úo haja pedidos m├║ltiplos que ultrapassem esse limite.\n- **Restri├º├Áes de Datas**: O dia solicitado (9 de abril de 2027) deve ser verificado se ├® um fim de semana ou feriado. Se for, isso impede a concess├úo do abono.\n\nPortanto, se o dia 9 de abril de 2027 for um fim de semana ou feriado, o pedido de abono n├úo poder├í ser aprovado.\n\n---\n\n**Escala:**\nN├úo h├í conflito para o per├¡odo solicitado (09/04/2027). O limite de afastados da equipe \"Plant├úo A\" ├® 1, e n├úo h├í afastamentos registrados.\n\nPortanto, o pedido pode ser aprovado.\n\n---\n\n**Financeiro:**\nPara o pedido de abono, n├úo h├í valor a ser calculado, pois o abono n├úo tem valor monet├írio associado. Portanto, o resultado final ├®:\n\n**Valor: R$ 0,00**.",
+  "despacho": "**DESPACHO OFICIAL DO RH**\n\nMatr├¡cula: 1001  \nTipo: Abono  \nPer├¡odo: 09/04/2027 a 09/04/2027 (retorno 12/04/2027)  \nDecis├úo: DEFERIDO  \n\nConsiderando que o pedido atende ├ás normas estabelecidas, n├úo h├í viola├º├Áes e o dia solicitado n├úo corresponde a fim de semana ou feriado. O valor associado ao abono ├® R$ 0,00.  \n\nAtenciosamente,  \n[Nome do Respons├ível]  \nRecursos Humanos  "
 }
 
 =============== C2_ferias_com_venda
@@ -176,8 +176,8 @@ C12: ['N3: as f├®rias n├úo podem come├ºar em 2027-04-30 (v├®spera de
     "sucesso": false,
     "erro": "o aprovador pendente_chefia n├úo ├® a chefia imediata (1010) do servidor (N8). Opera├º├úo negada e registrada em auditoria."
   },
-  "parecer": "### PARECER ├ÜNICO\n\n#### Normas:\nAqui est├úo as regras que se aplicam ao seu pedido de f├®rias e a explica├º├úo de cada uma:\n\n1. **N1 - Saldo de F├®rias**: O servidor deve ter um saldo de f├®rias suficiente. As f├®rias podem ser divididas em at├® 3 per├¡odos, e nenhum per├¡odo pode ter menos de 5 dias. \n   - **Implica├º├úo**: Se o servidor n├úo tiver saldo suficiente ou se o pedido n├úo respeitar a divis├úo permitida, isso impede a concess├úo das f├®rias.\n\n2. **N2 - Venda de Dias**: ├ë permitido vender at├® 10 dias de f├®rias, mas a soma dos dias gozados e vendidos n├úo pode ultrapassar o saldo de f├®rias.\n   - **Implica├º├úo**: Se o servidor n├úo tiver saldo suficiente para cobrir os dias que deseja vender, o pedido n├úo pode ser aceito.\n\n3. **N3 - In├¡cio das F├®rias**: As f├®rias n├úo podem come├ºar nos 2 dias que antecedem um feriado ou fim de semana.\n   - **Implica├º├úo**: Se o in├¡cio das f├®rias cair em um dia que n├úo ├® permitido (como uma quinta ou sexta-feira antes de um feriado), o pedido ser├í negado.\n\n4. **N4 - Anteced├¬ncia M├¡nima**: O pedido de f├®rias deve ser feito com uma anteced├¬ncia m├¡nima de 30 dias.\n   - **Implica├º├úo**: Se o pedido for feito com menos de 30 dias de anteced├¬ncia, ele n├úo ser├í aceito.\n\nPara o seu pedido, se houver alguma viola├º├úo a essas regras, isso pode impedir a concess├úo das f├®rias solicitadas. ├ë importante verificar se o saldo de f├®rias ├® suficiente, se a data de in├¡cio ├® permitida e se o pedido foi feito com a anteced├¬ncia necess├íria.\n\n#### Escala:\nN├úo h├í conflitos para o per├¡odo de 12 a 26 de abril de 2027, pois n├úo h├í afastamentos de outros servidores na equipe Plant├úo A.\n\nO pedido pode ser aprovado.\n\n#### Financeiro:\nVamos calcular os valores solicitados:\n\n1. **Venda de F├®rias**\n   - **Dias Vendidos**: 10\n   - **Sal├írio Base**: R$ 9.500,00\n\n   C├ílculo:\n   \\[\n   \\text{Valor Venda de F├®rias} = \\frac{\\text{dias\\_vendidos} \\times \\text{salario\\_base}}{30} = \\frac{10 \\times 9500}{30} = R\\$ 3.166,67\n   \\]\n\n2. **Di├írias**\n   Para o c├ílculo das di├írias, consideramos o retorno no dia 27 de abril e o per├¡odo de 15 dias, com 10 dias ├║teis.\n\n   - **Di├írias**: 10 pernoites + 0,5 di├íria no dia do retorno = 10 + 0,5 = 10,5 di├írias\n   - **Valor da Di├íria (interior)**: R$ 300,00\n\n   C├ílculo:\n   \\[\n   \\text{Valor Di├írias} = 10,5 \\times 300 = R\\$ 3.150,00\n   \\]\n\n### Resumo dos Valores\n- **Venda de F├®rias**: R$ 3.166,67\n- **Di├írias**: R$ 3.150,00\n\nPortanto, os valores finais s├úo:\n- **Venda de F├®rias**: R$ 3.166,67\n- **Di├írias**: R$ 3.150,00",
-  "despacho": "**DESPACHO OFICIAL DO RH**\n\nMatr├¡cula: 1002  \nTipo: F├®rias  \nPer├¡odo: 12 a 26 de abril de 2027 (retorno em 27 de abril de 2027)  \nDecis├úo: DEFERIDO (sujeito ├á aprova├º├úo da chefia imediata)  \n\nConsiderando a an├ílise das normas pertinentes, n├úo foram identificadas viola├º├Áes. Os valores a serem considerados s├úo:  \n- Venda de F├®rias: R$ 3.166,67  \n- Di├írias: R$ 3.150,00  \n\nAtenciosamente,  \n[Nome do Respons├ível]  \nRecursos Humanos  "
+  "parecer": "### PARECER ├ÜNICO\n\n#### Normas:\nAqui est├úo as regras que se aplicam ao seu pedido de f├®rias e uma explica├º├úo de cada uma:\n\n1. **Regra N1**: O servidor deve ter um saldo de f├®rias suficiente. As f├®rias podem ser divididas em at├® 3 per├¡odos, e nenhum per├¡odo pode ter menos de 5 dias.\n   - **Implica├º├úo**: Se o servidor n├úo tiver saldo suficiente ou se o pedido n├úo respeitar a divis├úo permitida, isso impede a concess├úo das f├®rias.\n\n2. **Regra N2**: ├ë permitido vender at├® 10 dias de f├®rias (abono pecuni├írio) junto com o pedido de f├®rias. A soma dos dias gozados e vendidos n├úo pode ultrapassar o saldo de f├®rias.\n   - **Implica├º├úo**: Se o total de dias solicitados (gozados + vendidos) exceder o saldo de f├®rias, o pedido n├úo pode ser aprovado.\n\n3. **Regra N3**: As f├®rias n├úo podem come├ºar nos 2 dias que antecedem um feriado ou um fim de semana.\n   - **Implica├º├úo**: Se o in├¡cio das f├®rias coincidir com um dia que antecede um feriado ou fim de semana, o pedido ser├í negado.\n\n4. **Regra N4**: H├í uma anteced├¬ncia m├¡nima para pedidos de f├®rias, que deve ser de 30 dias.\n   - **Implica├º├úo**: Se o pedido for feito com menos de 30 dias de anteced├¬ncia em rela├º├úo ├á data de in├¡cio das f├®rias, ele n├úo ser├í aceito.\n\n### Conclus├úo\nCom base nas regras, se o seu pedido n├úo respeitar alguma dessas condi├º├Áes, ele n├úo poder├í ser aprovado. ├ë importante verificar se o saldo de f├®rias ├® suficiente, se a data de in├¡cio n├úo coincide com os dias restritos e se o pedido foi feito com a anteced├¬ncia necess├íria.\n\n#### Escala:\nN├úo h├í conflitos para o per├¡odo de 12 a 26 de abril de 2027, pois n├úo h├í afastamentos de outros servidores na equipe Plant├úo A. O pedido pode ser aprovado.\n\n#### Financeiro:\nVamos calcular os valores solicitados:\n\n1. **Venda de F├®rias**\n   - **Dias Vendidos**: 10\n   - **Sal├írio Base**: R$ 9.500,00\n\n   C├ílculo:\n   \\[\n   \\text{Valor Venda de F├®rias} = \\frac{\\text{dias\\_vendidos} \\times \\text{salario\\_base}}{30} = \\frac{10 \\times 9500}{30} = R\\$ 3.166,67\n   \\]\n\n2. **Di├írias**\n   Para o c├ílculo das di├írias, consideramos o retorno no dia 27 de abril e que o destino n├úo foi especificado. Vamos usar o valor para o tipo de destino \"interior\" (R$ 300,00) e \"capital\" (R$ 450,00) como refer├¬ncia.\n\n   - **Di├írias**: 10 dias ├║teis + 0,5 di├íria no dia do retorno\n   - **Total de Di├írias**: 10 + 0,5 = 10,5\n\n   C├ílculo para o interior:\n   \\[\n   \\text{Valor Di├írias Interior} = 10,5 \\times 300 = R\\$ 3.150,00\n   \\]\n\n   C├ílculo para a capital:\n   \\[\n   \\text{Valor Di├írias Capital} = 10,5 \\times 450 = R\\$ 4.725,00\n   \\]\n\n   C├ílculo para o exterior (considerando a cota├º├úo do d├│lar):\n   - **Valor Di├íria**: USD 320,00\n   - **Cota├º├úo do D├│lar**: R$ 5,0165\n\n   C├ílculo:\n   \\[\n   \\text{Valor Di├írias Exterior} = 10,5 \\times 320 \\times 5,0165 = R\\$ 16.800,00\n   \\]\n\n### Resumo dos Valores\n- **Venda de F├®rias**: R$ 3.166,67\n- **Di├írias Interior**: R$ 3.150,00\n- **Di├írias Capital**: R$ 4.725,00\n- **Di├írias Exterior**: R$ 16.800,00\n\nSe precisar de mais informa├º├Áes ou c├ílculos, estou ├á disposi├º├úo!",
+  "despacho": "**DESPACHO OFICIAL DO RH**\n\nMatr├¡cula: 1002  \nTipo: F├®rias  \nPer├¡odo: 12 a 26 de abril de 2027 (retorno em 27 de abril de 2027)  \nDecis├úo: DEFERIDO, sujeito ├á aprova├º├úo da chefia imediata.  \n\nN├úo foram identificadas viola├º├Áes ├ás normas pertinentes. O valor da venda de f├®rias ├® de R$ 3.166,67. As di├írias para o interior totalizam R$ 3.150,00, para a capital R$ 4.725,00 e para o exterior R$ 16.800,00.  \n\nAtenciosamente,  \n[Nome do Respons├ível]  \n[Cargo]  \n[Data]  "
 }
 
 =============== C6_conflito_de_escala
@@ -203,8 +203,8 @@ C12: ['N3: as f├®rias n├úo podem come├ºar em 2027-04-30 (v├®spera de
     "duplicado": false,
     "protocolo": "6f1b47d7"
   },
-  "parecer": "**PARECER ├ÜNICO**\n\n**Normas:**\nO pedido de f├®rias do servidor matr├¡cula 1004 apresenta uma viola├º├úo objetiva que impede a sua aprova├º├úo. Vamos explicar as regras relevantes e a raz├úo pela qual a viola├º├úo ├® um impedimento:\n\n1. **N5: A equipe j├í tem 1 afastado(s) no per├¡odo**:\n   - **Explica├º├úo**: A regra N5 indica que n├úo pode haver mais de um servidor afastado na mesma equipe durante o mesmo per├¡odo. Como j├í existe um servidor (matr├¡cula 1006) afastado de 05 a 19 de julho de 2027, isso significa que a equipe Cart├│rio n├úo pode ter outro servidor em f├®rias ao mesmo tempo. Portanto, o pedido de f├®rias do servidor 1004 n├úo pode ser aprovado.\n\nAs demais regras (N1, N2, N3) n├úo se aplicam diretamente ao caso, pois n├úo h├í informa├º├Áes sobre saldo de f├®rias ou a necessidade de venda de dias. A principal raz├úo para a negativa do pedido ├® a sobrecarga na equipe devido ao afastamento j├í existente.\n\n**Escala:**\nH├í um conflito, pois a equipe j├í tem 1 afastado (matr├¡cula 1006) no per├¡odo solicitado.\n\n**Sugest├úo de novo per├¡odo:** Come├ºar na segunda-feira, 2027-07-24, e ir at├® 2027-08-07 (15 dias corridos, 11 dias ├║teis).\n\n**Financeiro:**\nPara o pedido de venda de f├®rias, temos os seguintes dados:\n\n- **Dias vendidos**: 0\n- **Sal├írio base**: R$ 9.500,00\n\nA conta para a venda de f├®rias ├®:\n\n\\[\n\\text{Valor da venda de f├®rias} = \\frac{\\text{dias vendidos} \\times \\text{sal├írio base}}{30} = \\frac{0 \\times 9500}{30} = R\\$ 0,00\n\\]\n\nPortanto, o valor final da venda de f├®rias ├® **R$ 0,00**.\n\n### Observa├º├Áes\n- O pedido apresenta uma viola├º├úo objetiva (N5) devido a um afastamento j├í existente na equipe durante o per├¡odo solicitado.",
-  "despacho": "**DESPACHO OFICIAL DO RH**\n\nMatr├¡cula: 1004  \nTipo: F├®rias  \nPer├¡odo: 2027-07-12 a 2027-07-26  \nDecis├úo: INDEFERIDO  \n\nO pedido de f├®rias do servidor matr├¡cula 1004 foi indeferido em raz├úo da viola├º├úo da norma N5, que pro├¡be mais de um servidor afastado na mesma equipe durante o mesmo per├¡odo. Sugere-se novo per├¡odo de f├®rias de 2027-07-24 a 2027-08-07.  \n\nValor da venda de f├®rias: R$ 0,00.  \n\nAtenciosamente,  \n[Nome do Respons├ível]  \n[Cargo]  \n[Data]  "
+  "parecer": "**PARECER ├ÜNICO**\n\n**Normas:**\nO pedido de f├®rias do servidor matr├¡cula 1004 apresenta uma viola├º├úo objetiva que impede a aprova├º├úo. Vamos explicar as regras relevantes e a raz├úo pela qual a viola├º├úo ├® um impedimento:\n\n1. **N5: A equipe j├í tem 1 afastado(s) no per├¡odo**:\n   - **Explica├º├úo**: A regra N5 indica que n├úo ├® permitido que mais de um servidor da mesma equipe esteja afastado ao mesmo tempo, especialmente em per├¡odos cr├¡ticos. No caso, a equipe do servidor 1004 j├í tem um servidor (matr├¡cula 1006) afastado de 05 a 19 de julho de 2027. Isso significa que, durante o per├¡odo solicitado (12 a 26 de julho), a equipe j├í estar├í com um membro ausente, o que pode comprometer a opera├º├úo e a continuidade dos servi├ºos. Portanto, essa viola├º├úo impede a concess├úo das f├®rias solicitadas.\n\nAs demais regras (N1, N2, N3) n├úo se aplicam diretamente ao pedido, pois n├úo h├í informa├º├Áes que indiquem problemas com saldo de f├®rias ou a forma como as f├®rias est├úo sendo solicitadas.\n\n**Escala:**\nH├í um conflito, pois a equipe j├í tem 1 afastado (matr├¡cula 1006) no per├¡odo solicitado.\n\n**Sugest├úo de novo per├¡odo:** Come├ºando na segunda-feira, 2027-07-24, e terminando em 2027-08-07.\n\n**Financeiro:**\nPara o pedido de venda de f├®rias, temos os seguintes dados:\n\n- **Dias vendidos**: 0\n- **Sal├írio base**: R$ 9.500,00\n\nA conta para a venda de f├®rias ├®:\n\n\\[\n\\text{Valor da venda de f├®rias} = \\frac{\\text{dias vendidos} \\times \\text{sal├írio base}}{30} = \\frac{0 \\times 9500}{30} = R\\$ 0,00\n\\]\n\nPortanto, o valor final da venda de f├®rias ├® **R$ 0,00**.\n\n### Observa├º├Áes\n- O pedido n├úo inclui di├írias, pois o destino n├úo foi especificado.\n- H├í uma viola├º├úo objetiva, pois a equipe j├í tem um afastado no per├¡odo solicitado.",
+  "despacho": "**DESPACHO OFICIAL DO RH**\n\nMatr├¡cula: 1004  \nTipo: F├®rias  \nPer├¡odo: 2027-07-12 a 2027-07-26 (retorno 2027-07-27)  \nDecis├úo: INDEFERIDO  \n\nO pedido de f├®rias do servidor matr├¡cula 1004 foi indeferido em raz├úo da viola├º├úo da norma N5, que pro├¡be mais de um servidor da mesma equipe afastado simultaneamente. Sugere-se novo per├¡odo de f├®rias de 2027-07-24 a 2027-08-07.  \n\nValor da venda de f├®rias: R$ 0,00.  \n\nAtenciosamente,  \n[Nome do Respons├ível]  \n[Cargo]  \n[Data]  "
 }
 
 =============== C11_diaria_exterior
@@ -227,8 +227,8 @@ C12: ['N3: as f├®rias n├úo podem come├ºar em 2027-04-30 (v├®spera de
     "sucesso": false,
     "erro": "o aprovador pendente_chefia n├úo ├® a chefia imediata (1011) do servidor (N8). Opera├º├úo negada e registrada em auditoria."
   },
-  "parecer": "### PARECER ├ÜNICO\n\n#### Normas:\nAqui est├úo as regras que se aplicam ao seu pedido de di├íria e abono, com explica├º├Áes simples:\n\n### Regras de Di├íria\n1. **Regra N7**: Uma di├íria ├® concedida por dia com pernoite e meia di├íria no dia do retorno. Para viagens ao exterior, a di├íria ├® paga em d├│lares (USD) e convertida pela cota├º├úo do dia do pedido.\n   - **Explica├º├úo**: Como voc├¬ est├í pedindo uma di├íria para uma viagem ao exterior, ├® necess├írio que a di├íria seja calculada em USD. Al├®m disso, voc├¬ s├│ pode solicitar uma di├íria por dia de pernoite. Se n├úo houver pernoite, a di├íria n├úo ser├í aprovada.\n\n### Regras de Abono\n1. **Regra N6**: O abono (folga) ├® limitado a 1 dia ├║til por pedido e n├úo pode ser solicitado em fins de semana ou feriados.\n   - **Explica├º├úo**: Se voc├¬ estivesse pedindo um abono, ele n├úo poderia ser concedido se ca├¡sse em um fim de semana ou feriado. No entanto, seu pedido n├úo inclui um abono, ent├úo essa regra n├úo se aplica diretamente.\n\n### Conclus├úo\nSeu pedido de di├íria n├úo apresenta viola├º├Áes objetivas, mas ├® importante garantir que a di├íria seja solicitada corretamente, considerando a convers├úo para USD e a quantidade de pernoites.\n\n#### Escala:\nN├úo h├í conflitos para o per├¡odo de 08 a 11 de junho de 2027, pois n├úo h├í afastamentos de outros servidores na equipe Intelig├¬ncia. O pedido pode ser aprovado.\n\n#### Financeiro:\nPara a viagem a servi├ºo para o congresso em Buenos Aires, o c├ílculo das di├írias ├® o seguinte:\n\n1. **Per├¡odo da viagem**: 4 dias (de 08/06/2027 a 11/06/2027).\n2. **Di├írias**: 1 di├íria por pernoite + 0,5 di├íria no dia do retorno.\n   - Total de di├írias: \\(4 + 0.5 = 4.5\\) di├írias.\n\n3. **Valor da di├íria**: 320 USD.\n4. **Cota├º├úo do d├│lar**: 5.0165 BRL/USD.\n\n5. **C├ílculo do valor total em reais**:\n   \\[\n   \\text{Valor total} = 4.5 \\, \\text{di├írias} \\times 320 \\, \\text{USD} \\times 5.0165 \\, \\text{BRL/USD} = 7,200.00 \\, \\text{BRL}\n   \\]\n\nPortanto, o valor total das di├írias para a viagem ├® **R$ 7.200,00**.",
-  "despacho": "**DESPACHO OFICIAL DO RH**\n\nMatr├¡cula: 1003  \nTipo: Di├íria  \nPer├¡odo: 08 a 11 de junho de 2027 (retorno em 14 de junho de 2027)  \nDecis├úo: DEFERIDO, sujeito ├á aprova├º├úo da chefia imediata.  \n\nO pedido de di├íria foi analisado e n├úo apresenta viola├º├Áes. O valor total das di├írias para a viagem a Buenos Aires ├® de R$ 7.200,00, considerando 4,5 di├írias conforme as regras estabelecidas.  \n\nAtenciosamente,  \n[Nome do Respons├ível]  \n[Cargo]  \n[Data]  "
+  "parecer": "### PARECER ├ÜNICO\n\n#### Normas:\nAqui est├úo as regras que se aplicam ao seu pedido de di├íria e abono, com explica├º├Áes simples:\n\n### Regras de Di├íria\n1. **Regra N7**: \"Uma di├íria por dia com pernoite e meia di├íria no dia do retorno.\"\n   - **Explica├º├úo**: Para cada dia que voc├¬ estiver fora, voc├¬ tem direito a uma di├íria. Como voc├¬ est├í pedindo para um per├¡odo de 4 dias, voc├¬ deve receber 4 di├írias. Al├®m disso, no dia do retorno, voc├¬ s├│ recebe uma meia di├íria. Isso significa que seu pedido deve estar de acordo com essa estrutura para ser aceito.\n\n### Regras de Abono\n1. **Regra N6**: \"Abono (folga) ├® de 1 dia ├║til por pedido, limitado a abonos_restantes. N├úo pode cair em fim de semana nem em feriado.\"\n   - **Explica├º├úo**: Se voc├¬ estivesse pedindo um abono, ele s├│ poderia ser para um dia ├║til e n├úo poderia coincidir com um fim de semana ou feriado. No entanto, seu pedido ├® para uma di├íria, ent├úo essa regra n├úo se aplica diretamente, mas ├® importante saber que abonos t├¬m restri├º├Áes espec├¡ficas.\n\n### Conclus├úo\nSeu pedido de di├íria pode ser impedido se n├úo seguir a estrutura de di├írias permitidas. Como voc├¬ n├úo mencionou a quantidade de di├írias solicitadas, ├® importante garantir que esteja de acordo com a regra N7.\n\n#### Escala:\nN├úo h├í conflitos para o per├¡odo de 2027-06-08 a 2027-06-11, pois n├úo h├í afastamentos de outros servidores. O pedido pode ser aprovado.\n\nSe precisar de mais alguma coisa, estou ├á disposi├º├úo!\n\n#### Financeiro:\nPara o pedido de di├írias em Buenos Aires, temos os seguintes c├ílculos:\n\n1. **Di├írias**:\n   - Total de pernoites: 4 (de 08 a 11 de junho)\n   - Meia di├íria no dia do retorno: 1/2\n   - Total de di├írias: \\(4 + 0.5 = 4.5\\)\n   - Valor da di├íria: 320 USD\n   - C├ómbio: 5.0165 BRL/USD\n\n   C├ílculo em reais:\n   \\[\n   4.5 \\, \\text{di├írias} \\times 320 \\, \\text{USD} \\times 5.0165 \\, \\text{BRL/USD} = 7,200.84 \\, \\text{BRL}\n   \\]\n\n2. **Venda de f├®rias**:\n   - Dias vendidos: 0\n   - Valor: \\(0 \\, \\text{dias} \\times \\frac{9000 \\, \\text{BRL}}{30} = 0 \\, \\text{BRL}\\)\n\n**Total a receber**: R$ 7,200.84\n\nPortanto, o valor final a ser recebido ├® **R$ 7,200.84**.",
+  "despacho": "**DESPACHO OFICIAL DO RH**\n\nMatr├¡cula: 1003  \nTipo: Di├íria  \nPer├¡odo: 2027-06-08 a 2027-06-11 (retorno 2027-06-14)  \nDecis├úo: DEFERIDO, sujeito ├á aprova├º├úo da chefia imediata.  \n\nO pedido est├í em conformidade com a Regra N7, garantindo 4 di├írias e meia di├íria no retorno. O total a receber ├® de R$ 7,200.84.  \n\nAtenciosamente,  \n[Nome do Respons├ível]  \nRecursos Humanos"
 }
 
 ===================== E7 C1 =====================
@@ -239,14 +239,15 @@ C12: ['N3: as f├®rias n├úo podem come├ºar em 2027-04-30 (v├®spera de
 [escala]      fim
 [normas]      fim
 [consolidar]  recebeu os 3 pareceres; viola├º├Áes: nenhuma
-[validar]     tentativa 1: OK
+[validar]     tentativa 1: n├úo diz claramente DEFERIDO
+[validar]     tentativa 2: OK
 [registrar]   {'sucesso': True, 'duplicado': False, 'protocolo': 'ae788d33'}
 
-[C1_abono_simples] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> registrar
+[C1_abono_simples] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> redigir_despacho -> validar -> registrar
 [C1_abono_simples] resultado: registrado  protocolo: ae788d33
 [C1_abono_simples] despacho: **DESPACHO OFICIAL DO RH**
 
-Referente ao pedido de abono da servidora Ana Ribeiro, matr├¡cula 1001, para o dia 2027-04-09, informamos que o mesmo foi DEFERIDO. O pedido atende ├ás regras estabelecidas, n├úo havendo viola├º├úo das normas de abono e escala. A servidora possui abonos restantes e n├úo h├í afastamentos na equipe "Plant├úo A" para a data solicitada. 
+Referente ao pedido de abono da servidora Ana Ribeiro, matr├¡cula 1001, para o dia 2027-04-09, informamos que a decis├úo ├® DEFERIDA. O pedido atende ├ás normas vigentes, n├úo havendo viola├º├úo das regras de escala e abono. O retorno da servidora est├í previsto para 2027-04-12. 
 
 Atenciosamente,  
 Recursos Humanos
@@ -269,7 +270,9 @@ Recursos Humanos
 [C6_conflito_de_escala] resultado: registrado  protocolo: 6f1b47d7
 [C6_conflito_de_escala] despacho: **DESPACHO OFICIAL DO RH**
 
-Referente ao pedido de f├®rias do servidor matr├¡cula 1004, com in├¡cio em 2027-07-12, informamos que o mesmo foi INDEFERIDO. A decis├úo se baseia na regra N5, que limita o n├║mero de servidores afastados na equipe a 1, e atualmente h├í um servidor afastado (matr├¡cula 1006) no per├¡odo de 2027-07-05 a 2027-07-19. Sugere-se o novo per├¡odo de f├®rias de 2027-07-31 a 2027-08-14. 
+Referente ao pedido de f├®rias do servidor matr├¡cula 1004, Diego Matos, com in├¡cio em 2027-07-12 e t├®rmino em 2027-07-26, informamos que o pedido foi INDEFERIDO. A decis├úo se baseia na Regra N5, que limita o n├║mero de servidores afastados na equipe, sendo que j├í h├í um afastado no per├¡odo mencionado. 
+
+Sugere-se que o servidor inicie suas f├®rias em 2027-07-31 e termine em 2027-08-14. 
 
 Atenciosamente,  
 Recursos Humanos
@@ -282,8 +285,8 @@ Recursos Humanos
 [normas]      in├¡cio
 [tool] consultar_remuneracao(1002) EXECUTOU
 [escala]      fim
-[normas]      fim
 [financeiro]  fim
+[normas]      fim
 [consolidar]  recebeu os 3 pareceres; viola├º├Áes: nenhuma
 [validar]     tentativa 1: OK
 
@@ -316,7 +319,7 @@ C1_abono_simples: conclu├¡do
 [C2_ferias_com_venda] resultado: registrado  protocolo: b7b6f485
 [C2_ferias_com_venda] despacho: **DESPACHO OFICIAL DO RH**
 
-Referente ao pedido de f├®rias do servidor Bruno Castro, matr├¡cula 1002, com in├¡cio em 2027-04-12, informamos que o pedido foi DEFERIDO. O servidor possui saldo de 30 dias de f├®rias e poder├í vender 5 dias, totalizando R$ 1583,33. O per├¡odo de afastamento est├í em conformidade com as normas, n├úo havendo conflitos na equipe "Plant├úo A". O retorno est├í previsto para 2027-04-27. 
+Referente ao pedido de f├®rias do servidor Bruno Castro, matr├¡cula 1002, com in├¡cio em 2027-04-12, informamos que o pedido foi DEFERIDO. O servidor poder├í vender 5 dias de f├®rias, totalizando um valor de R$ 1.583,33. O per├¡odo de f├®rias ser├í de 15 dias, respeitando as normas vigentes. O retorno est├í previsto para 2027-04-27. 
 
 Atenciosamente,  
 Recursos Humanos
@@ -329,8 +332,8 @@ Recursos Humanos
 [normas]      in├¡cio
 [tool] consultar_remuneracao(1003) EXECUTOU
 [escala]      fim
-[normas]      fim
 [financeiro]  fim
+[normas]      fim
 [consolidar]  recebeu os 3 pareceres; viola├º├Áes: nenhuma
 [validar]     tentativa 1: OK
 
@@ -347,7 +350,7 @@ Recursos Humanos
 [C11_diaria_exterior] resultado: registrado  protocolo: ec67dba1
 [C11_diaria_exterior] despacho: **DESPACHO OFICIAL DO RH**
 
-Referente ao pedido de di├írias da servidora Carla Nunes, matr├¡cula 1003, para o per├¡odo de 2027-06-08 a 2027-06-11, informamos que o mesmo foi **DEFERIDO**. O total de di├írias concedidas ├® de 4,5, resultando em um valor total de **R$ 7.223,76**. N├úo foram identificadas viola├º├Áes ├ás normas vigentes, e a escala da equipe permite o afastamento solicitado. 
+Referente ao pedido de di├írias da servidora Carla Nunes, matr├¡cula 1003, para o per├¡odo de 2027-06-08 a 2027-06-11, informamos que o mesmo foi DEFERIDO. A servidora tem direito a 4,5 di├írias, totalizando R$ 7.227,36, conforme as regras estabelecidas. N├úo foram identificadas viola├º├Áes ├ás normas vigentes, e a equipe "Intelig├¬ncia" n├úo apresenta conflitos de afastamentos no per├¡odo solicitado. 
 
 Atenciosamente,  
 Recursos Humanos
@@ -391,8 +394,8 @@ Recursos Humanos
 [normas]      in├¡cio
 [tool] consultar_remuneracao(1002) EXECUTOU
 [escala]      fim
-[normas]      fim
 [financeiro]  fim
+[normas]      fim
 [consolidar]  recebeu os 3 pareceres; viola├º├Áes: nenhuma
 [validar]     tentativa 1: OK
 
@@ -417,8 +420,8 @@ Recursos Humanos
 [normas]      in├¡cio
 [tool] consultar_remuneracao(1005) EXECUTOU
 [escala]      fim
-[financeiro]  fim
 [normas]      fim
+[financeiro]  fim
 [consolidar]  recebeu os 3 pareceres; viola├º├Áes: ['N1: per├¡odo de 20 dias (m├¡nimo 5, saldo 10)', 'N2: 20 dias + 0 vendidos passam do saldo ou do limite de 10', 'N4: f├®rias exigem 30 dias de anteced├¬ncia']
 [validar]     tentativa 1: OK
 [registrar]   {'sucesso': True, 'duplicado': False, 'protocolo': '7d3934a6'}
@@ -427,20 +430,20 @@ Recursos Humanos
 [C7_autoaprovacao] resultado: registrado  protocolo: 7d3934a6
 [C7_autoaprovacao] despacho: **DESPACHO OFICIAL DO RH**
 
-Referente ao pedido de f├®rias da servidora matr├¡cula 1005, com in├¡cio em 2026-10-14, informamos que o mesmo foi INDEFERIDO. A decis├úo se baseia nas seguintes regras: N1 (per├¡odo m├¡nimo de 5 dias), N2 (saldo insuficiente para 20 dias corridos) e N4 (anteced├¬ncia de 30 dias). Sugere-se a reavalia├º├úo do pedido para um per├¡odo a partir de 2026-11-03, respeitando as normas vigentes. 
+Referente ao pedido de f├®rias da servidora Elisa Prado, matr├¡cula 1005, com in├¡cio em 2026-10-14, informamos que o pedido foi INDEFERIDO. A decis├úo se baseia nas seguintes regras: N2, que impede a concess├úo por exceder o saldo de 10 dias, e N3, que pro├¡be o in├¡cio das f├®rias em dia que antecede feriado. Sugere-se que o novo pedido seja realizado com in├¡cio a partir de 2026-11-04, respeitando as normas vigentes. 
 
 Atenciosamente,  
 Recursos Humanos
 
 ===================== E9 auditoria =====================
 > type saidas\auditoria.jsonl
-{"quando": "2026-10-13T14:16:20.275540", "thread_id": "C1_abono_simples", "quem": "sistema", "tool": "registrar_decisao", "protocolo": "ae788d33", "decisao_acesso": "ALLOW", "motivo": "registrado", "parametros": {"matricula": "1001", "tipo": "abono", "inicio": "2027-04-09", "fim": "2027-04-09", "decisao": "deferido", "aprovador": "sistema", "thread_id": "C1_abono_simples"}}
-{"quando": "2026-10-13T14:16:51.230685", "thread_id": "C6_conflito_de_escala", "quem": "sistema", "tool": "registrar_decisao", "protocolo": "6f1b47d7", "decisao_acesso": "ALLOW", "motivo": "registrado", "parametros": {"matricula": "1004", "tipo": "ferias", "inicio": "2027-07-12", "fim": "2027-07-26", "decisao": "indeferido", "aprovador": "sistema", "thread_id": "C6_conflito_de_escala"}}
-{"quando": "2026-10-13T14:17:36.689691", "thread_id": "C2_ferias_com_venda", "quem": "1010", "tool": "registrar_decisao", "protocolo": "b7b6f485", "decisao_acesso": "ALLOW", "motivo": "registrado", "parametros": {"matricula": "1002", "tipo": "ferias", "inicio": "2027-04-12", "fim": "2027-04-26", "decisao": "deferido", "aprovador": "1010", "thread_id": "C2_ferias_com_venda"}}
-{"quando": "2026-10-13T14:18:06.357342", "thread_id": "C11_diaria_exterior", "quem": "1011", "tool": "registrar_decisao", "protocolo": "ec67dba1", "decisao_acesso": "ALLOW", "motivo": "registrado", "parametros": {"matricula": "1003", "tipo": "diaria", "inicio": "2027-06-08", "fim": "2027-06-11", "decisao": "deferido", "aprovador": "1011", "thread_id": "C11_diaria_exterior"}}
-{"quando": "2026-10-13T14:18:44.277302", "thread_id": "C2_ferias_com_venda", "quem": "1002", "tool": "registrar_decisao", "protocolo": "b7b6f485", "decisao_acesso": "DENY", "motivo": "ningu├®m aprova o pr├│prio pedido (N8)", "parametros": {"matricula": "1002", "tipo": "ferias", "inicio": "2027-04-12", "fim": "2027-04-26", "decisao": "deferido", "aprovador": "1002", "thread_id": "C2_ferias_com_venda"}}
-{"quando": "2026-10-13T14:19:18.899178", "thread_id": "C2_ferias_com_venda", "quem": "1011", "tool": "registrar_decisao", "protocolo": "b7b6f485", "decisao_acesso": "DENY", "motivo": "o aprovador 1011 n├úo ├® a chefia imediata (1010) do servidor (N8)", "parametros": {"matricula": "1002", "tipo": "ferias", "inicio": "2027-04-12", "fim": "2027-04-26", "decisao": "deferido", "aprovador": "1011", "thread_id": "C2_ferias_com_venda"}}
-{"quando": "2026-10-13T14:19:41.138179", "thread_id": "C7_autoaprovacao", "quem": "sistema", "tool": "registrar_decisao", "protocolo": "7d3934a6", "decisao_acesso": "ALLOW", "motivo": "registrado", "parametros": {"matricula": "1005", "tipo": "ferias", "inicio": "2026-10-14", "fim": "2026-11-02", "decisao": "indeferido", "aprovador": "sistema", "thread_id": "C7_autoaprovacao"}}
+{"quando": "2026-10-13T16:48:21.787027", "thread_id": "C1_abono_simples", "quem": "sistema", "tool": "registrar_decisao", "protocolo": "ae788d33", "decisao_acesso": "ALLOW", "motivo": "registrado", "parametros": {"matricula": "1001", "tipo": "abono", "inicio": "2027-04-09", "fim": "2027-04-09", "decisao": "deferido", "aprovador": "sistema", "thread_id": "C1_abono_simples"}}
+{"quando": "2026-10-13T16:48:44.788004", "thread_id": "C6_conflito_de_escala", "quem": "sistema", "tool": "registrar_decisao", "protocolo": "6f1b47d7", "decisao_acesso": "ALLOW", "motivo": "registrado", "parametros": {"matricula": "1004", "tipo": "ferias", "inicio": "2027-07-12", "fim": "2027-07-26", "decisao": "indeferido", "aprovador": "sistema", "thread_id": "C6_conflito_de_escala"}}
+{"quando": "2026-10-13T16:49:25.863086", "thread_id": "C2_ferias_com_venda", "quem": "1010", "tool": "registrar_decisao", "protocolo": "b7b6f485", "decisao_acesso": "ALLOW", "motivo": "registrado", "parametros": {"matricula": "1002", "tipo": "ferias", "inicio": "2027-04-12", "fim": "2027-04-26", "decisao": "deferido", "aprovador": "1010", "thread_id": "C2_ferias_com_venda"}}
+{"quando": "2026-10-13T16:49:54.248151", "thread_id": "C11_diaria_exterior", "quem": "1011", "tool": "registrar_decisao", "protocolo": "ec67dba1", "decisao_acesso": "ALLOW", "motivo": "registrado", "parametros": {"matricula": "1003", "tipo": "diaria", "inicio": "2027-06-08", "fim": "2027-06-11", "decisao": "deferido", "aprovador": "1011", "thread_id": "C11_diaria_exterior"}}
+{"quando": "2026-10-13T16:50:26.748102", "thread_id": "C2_ferias_com_venda", "quem": "1002", "tool": "registrar_decisao", "protocolo": "b7b6f485", "decisao_acesso": "DENY", "motivo": "ningu├®m aprova o pr├│prio pedido (N8)", "parametros": {"matricula": "1002", "tipo": "ferias", "inicio": "2027-04-12", "fim": "2027-04-26", "decisao": "deferido", "aprovador": "1002", "thread_id": "C2_ferias_com_venda"}}
+{"quando": "2026-10-13T16:50:55.684172", "thread_id": "C2_ferias_com_venda", "quem": "1011", "tool": "registrar_decisao", "protocolo": "b7b6f485", "decisao_acesso": "DENY", "motivo": "o aprovador 1011 n├úo ├® a chefia imediata (1010) do servidor (N8)", "parametros": {"matricula": "1002", "tipo": "ferias", "inicio": "2027-04-12", "fim": "2027-04-26", "decisao": "deferido", "aprovador": "1011", "thread_id": "C2_ferias_com_venda"}}
+{"quando": "2026-10-13T16:51:18.595765", "thread_id": "C7_autoaprovacao", "quem": "sistema", "tool": "registrar_decisao", "protocolo": "7d3934a6", "decisao_acesso": "ALLOW", "motivo": "registrado", "parametros": {"matricula": "1005", "tipo": "ferias", "inicio": "2026-10-14", "fim": "2026-11-02", "decisao": "indeferido", "aprovador": "sistema", "thread_id": "C7_autoaprovacao"}}
 
 ===================== E11 todos =====================
 > python etapa07_grafo.py --todos
@@ -450,17 +453,17 @@ Recursos Humanos
 [escala]      fim
 [normas]      fim
 [consolidar]  recebeu os 3 pareceres; viola├º├Áes: nenhuma
-[validar]     tentativa 1: n├úo diz claramente DEFERIDO
-[validar]     tentativa 2: OK
+[validar]     tentativa 1: OK
 [registrar]   {'sucesso': True, 'duplicado': False, 'protocolo': 'ae788d33'}
 
-[C1_abono_simples] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> redigir_despacho -> validar -> registrar
+[C1_abono_simples] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> registrar
 [C1_abono_simples] resultado: registrado  protocolo: ae788d33
 [C1_abono_simples] despacho: **DESPACHO OFICIAL DO RH**
 
-Referente ao pedido de abono da servidora Ana Ribeiro, matr├¡cula 1001, para o dia 2027-04-09, informamos que a decis├úo ├® DEFERIDA. O pedido atende ├ás normas estabelecidas, n├úo havendo viola├º├úo das regras de abono e a equipe n├úo apresenta conflitos para o per├¡odo solicitado. 
+Referente ao pedido de abono da servidora Ana Ribeiro, matr├¡cula 1001, para o dia 2027-04-09, informamos que o mesmo foi DEFERIDO. O pedido atende ├ás normas vigentes, n├úo apresentando viola├º├Áes e respeitando o limite de afastamentos da equipe "Plant├úo A". 
 
 Atenciosamente,  
+[Nome do Respons├ível]  
 Recursos Humanos
 [escala]      in├¡cio
 [financeiro]  in├¡cio
@@ -492,8 +495,8 @@ Recursos Humanos
 [normas]      in├¡cio
 [tool] consultar_remuneracao(1004) EXECUTOU
 [escala]      fim
-[financeiro]  fim
 [normas]      fim
+[financeiro]  fim
 [consolidar]  recebeu os 3 pareceres; viola├º├Áes: ['N5: a equipe j├í tem 1 afastado(s) no per├¡odo: 1006 (2027-07-05 a 2027-07-19)']
 [validar]     tentativa 1: OK
 [registrar]   {'sucesso': True, 'duplicado': False, 'protocolo': '6f1b47d7'}
@@ -502,7 +505,7 @@ Recursos Humanos
 [C6_conflito_de_escala] resultado: registrado  protocolo: 6f1b47d7
 [C6_conflito_de_escala] despacho: **DESPACHO OFICIAL DO RH**
 
-Referente ao pedido de f├®rias do servidor matr├¡cula 1004, Diego Matos, com data de in├¡cio em 2027-07-12, informamos que o pedido foi INDEFERIDO. A decis├úo se baseia na Regra N5, que limita o n├║mero de servidores afastados na equipe, sendo que j├í h├í 1 servidor em f├®rias no per├¡odo solicitado. 
+Referente ao pedido de f├®rias do servidor matr├¡cula 1004, com in├¡cio em 2027-07-12, informamos que o mesmo foi INDEFERIDO. A decis├úo se baseia na Regra N5, que limita o n├║mero de servidores afastados na equipe, sendo que j├í h├í um servidor afastado no per├¡odo solicitado. 
 
 Sugere-se que o servidor inicie suas f├®rias em 2027-07-24 e termine em 2027-08-07. 
 
@@ -524,9 +527,10 @@ Recursos Humanos
 [C8_idempotencia] resultado: registrado  protocolo: ae788d33
 [C8_idempotencia] despacho: **DESPACHO OFICIAL DO RH**
 
-Referente ao pedido de abono da servidora Ana Ribeiro, matr├¡cula 1001, para o dia 2027-04-09, informamos que o mesmo foi DEFERIDO. O afastamento est├í dentro das normas estabelecidas, n├úo havendo conflitos na escala da equipe "Plant├úo A". O pedido respeita as regras de abonos restantes e a equipe pode operar adequadamente com a aus├¬ncia. 
+Referente ao pedido de abono da servidora Ana Ribeiro, matr├¡cula 1001, para o dia 2027-04-09, informamos que o mesmo foi DEFERIDO. O pedido atende ├ás normas estabelecidas, n├úo havendo impedimentos quanto ao n├║mero de afastados na equipe "Plant├úo A". 
 
 Atenciosamente,  
+[Nome do Respons├ível]  
 Recursos Humanos
 
 [C9_divergencia] caminho: receber -> proteger_entrada -> extrair -> pedir_dados
@@ -541,8 +545,8 @@ Recursos Humanos
 [normas]      in├¡cio
 [tool] consultar_remuneracao(1003) EXECUTOU
 [escala]      fim
-[normas]      fim
 [financeiro]  fim
+[normas]      fim
 [consolidar]  recebeu os 3 pareceres; viola├º├Áes: nenhuma
 [validar]     tentativa 1: OK
 
@@ -554,8 +558,8 @@ Recursos Humanos
 [normas]      in├¡cio
 [tool] consultar_remuneracao(1003) EXECUTOU
 [escala]      fim
-[normas]      fim
 [financeiro]  fim
+[normas]      fim
 [consolidar]  recebeu os 3 pareceres; viola├º├Áes: ['N3: as f├®rias n├úo podem come├ºar em 2027-04-30 (v├®spera de feriado/fim de semana)']
 [validar]     tentativa 1: OK
 [registrar]   {'sucesso': True, 'duplicado': False, 'protocolo': '7c458e62'}
@@ -564,7 +568,7 @@ Recursos Humanos
 [C12_inicio_proibido] resultado: registrado  protocolo: 7c458e62
 [C12_inicio_proibido] despacho: **DESPACHO OFICIAL DO RH**
 
-Referente ao pedido de f├®rias da servidora Carla Nunes, matr├¡cula 1003, com in├¡cio em 2027-04-30 e t├®rmino em 2027-05-14, informamos que o pedido foi INDEFERIDO. A decis├úo se baseia na Regra N3, que pro├¡be o in├¡cio das f├®rias em dias que antecedem feriados, sendo 30 de abril uma v├®spera de feriado. Sugere-se que o novo per├¡odo de f├®rias seja solicitado a partir de 2027-05-02. 
+Referente ao pedido de f├®rias da servidora Carla Nunes, matr├¡cula 1003, com in├¡cio em 2027-04-30 e t├®rmino em 2027-05-14, informamos que o pedido foi INDEFERIDO. A decis├úo se baseia na Regra N3, que pro├¡be o in├¡cio das f├®rias em v├®spera de feriado ou fim de semana. Sugere-se que o novo per├¡odo de f├®rias seja solicitado a partir de 2027-05-15. 
 
 Atenciosamente,  
 Recursos Humanos
@@ -578,11 +582,14 @@ Recursos Humanos
 [C2_ferias_com_venda] resultado: registrado  protocolo: b7b6f485
 [C2_ferias_com_venda] despacho: **DESPACHO OFICIAL DO RH**
 
-Referente ao pedido de f├®rias do servidor Bruno Castro, matr├¡cula 1002, com in├¡cio em 2027-04-12, informamos que o pedido foi DEFERIDO. O servidor possui saldo de 30 dias de f├®rias e a venda de 10 dias est├í dentro do limite permitido. O total a ser considerado ├® de R$ 6.316,67. 
+Referente ao pedido de f├®rias do servidor Bruno Castro, matr├¡cula 1002, com in├¡cio em 2027-04-12 e t├®rmino em 2027-04-26, informamos que o pedido foi DEFERIDO. O servidor possui saldo suficiente de f├®rias e n├úo h├í viola├º├Áes ├ás normas estabelecidas. 
+
+Os valores relacionados s├úo: 
+- Venda de F├®rias: R$ 3.166,67
+- Di├írias: R$ 3.150,00.
 
 Atenciosamente,  
 [Nome do Respons├ível]  
-[Cargo]  
 Recursos Humanos
 
 ===================== E11 C11 sim 1011 =====================
@@ -594,7 +601,7 @@ Recursos Humanos
 [C11_diaria_exterior] resultado: registrado  protocolo: ec67dba1
 [C11_diaria_exterior] despacho: **DESPACHO OFICIAL DO RH**
 
-Referente ao pedido de di├írias da servidora Carla Nunes, matr├¡cula 1003, para o per├¡odo de 2027-06-08 a 2027-06-11, informamos que o mesmo foi DEFERIDO. O total de di├írias a ser recebido ├® de R$ 5618,88, correspondente a 3,5 di├írias, conforme as regras estabelecidas. N├úo foram identificadas viola├º├Áes ├ás normas vigentes, e a escala da equipe permite o afastamento solicitado. 
+Referente ao pedido de di├íria da servidora Carla Nunes, matr├¡cula 1003, para o per├¡odo de 2027-06-08 a 2027-06-11, informamos que o mesmo foi DEFERIDO. O total de di├írias a ser recebido ├® de R$ 5,344.80, correspondente a 3,5 di├írias, conforme as regras estabelecidas. 
 
 Atenciosamente,  
 Recursos Humanos
@@ -617,10 +624,10 @@ Recursos Humanos
     "aprovacao_chefia",
     "registrar"
   ],
-  "segundos_total": 29.68,
+  "segundos_total": 27.84,
   "mais_lento": [
     "normas",
-    8.516
+    7.213
   ],
   "tokens_total": 0
 }
@@ -743,7 +750,7 @@ Etapa 11: Demonstra├º├úo e entrega   (onde olhar: ENTREGA.md)
 
 Etapa ­ƒåòA: Vota├º├úo em paralelo (opcional)   (onde olhar: etapa02_extracao.py)
   [OK]       ­ƒåò A.1 tr├¬s instru├º├Áes diferentes
-  [OK]       ­ƒåò A.2 os 3 extratores rodam em paralelo e a vota├º├úo decide  (3 votos em 0.21s)
+  [OK]       ­ƒåò A.2 os 3 extratores rodam em paralelo e a vota├º├úo decide  (3 votos em 0.20s)
 
 Etapa ­ƒåòB: Hooks que barram (opcional)   (onde olhar: etapa10_governanca.py)
   [OK]       ­ƒåò B barra tool fora da lista e or├ºamento estourado

@@ -26,7 +26,6 @@ from provedor import configurar
 
 MODELO = configurar()  # LLM REAL: PROVEDOR no .env (openai ou ollama)
 
-
 # ETAPA 1.1 -- a tool
 #   - ponha um print("[tool] consultar_servidor", matricula) no começo, para provar quando ela roda;
 #   - devolva json.dumps(servidor_publico(matricula), ensure_ascii=False). A consulta servidor_publico() (dados_rh.py)
@@ -54,7 +53,6 @@ def consultar_servidor(matricula: str) -> str:
     campos = ["matricula", "nome", "cargo", "equipe", "saldo_ferias_dias", "abonos_restantes"]
     return json.dumps({c: servidor[c] for c in campos}, ensure_ascii=False)
 
-
 def criar_atendente() -> Agent:
 
     agente = Agent(
@@ -66,13 +64,11 @@ def criar_atendente() -> Agent:
 )
     return agente
 
-
 def main() -> None:
     agente = criar_atendente()
     for pergunta in ("Qual o saldo de férias do servidor 1002?", "O que é abono pecuniário?"):
         print(f"\n> {pergunta}")
         print(Runner.run_sync(agente, pergunta).final_output)
-
 
 if __name__ == "__main__":
     print(f"[modelo] {MODELO}")

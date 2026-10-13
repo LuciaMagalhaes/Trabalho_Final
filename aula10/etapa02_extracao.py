@@ -41,7 +41,6 @@ from provedor import configurar
 
 MODELO = configurar()
 
-
 class TipoPedido(str, Enum):
     FERIAS = "ferias"
     ABONO = "abono"
@@ -49,12 +48,10 @@ class TipoPedido(str, Enum):
     LICENCA_SAUDE = "licenca_saude"
     OUTRO = "outro"
 
-
 class TipoDestino(str, Enum):
     CAPITAL = "capital"
     INTERIOR = "interior"
     EXTERIOR = "exterior"
-
 
 class Pedido(BaseModel):
     matricula: str | None = Field(description="4 dígitos; None se o servidor não informou")
@@ -68,13 +65,11 @@ class Pedido(BaseModel):
         "Tipo do pedido: 'ferias' (descanso anual, pode incluir venda de dias), 'abono' (folga de 1 dia útil), "
         "'diaria' (viagem a serviço), 'licenca_saude' (afastamento por doença) ou 'outro'."))
 
-
 def criar_extrator(instrucoes: str, input_guardrails: list | None = None) -> Agent:
 
     agente_extrator = Agent(name="Extrator", instructions=instrucoes, output_type=Pedido, input_guardrails=input_guardrails or [])
 
     return agente_extrator
-
 
 INSTRUCOES_EXTRATOR = (
     "Você extrai pedidos de servidores para o RH (férias, abono ou diária). "
@@ -89,13 +84,11 @@ INSTRUCOES_EXTRATOR = (
     f"Hoje é {texto_hoje()}. "  # (PRONTO) a data real: o modelo não tem relógio (aula3/agente_retry.py)
 )
 
-
 def extrair(texto: str) -> Pedido:
 
     resultado = Runner.run_sync(
                 criar_extrator(INSTRUCOES_EXTRATOR), texto)
     return resultado.final_output
-
 
 # ------------------------------------------------------------------ 🆕 A: votação (OPCIONAL, bônus)
 # Para ligar no grafo depois de pronto: USAR_VOTACAO = True em etapa07_grafo.py.
@@ -105,7 +98,6 @@ INSTRUCOES_VOTANTES: list[str] = ["Um extrator literal",
                                   "Confere as datas conforme o calendário",
                                   "pensa como setor de Recursos Humanos de uma empresa."] 
 
-
 async def extrair_com_votacao(texto: str) -> tuple[Pedido, bool, list[Pedido]]:
 
     extratores = [criar_extrator(instr) for instr in INSTRUCOES_VOTANTES]
@@ -114,7 +106,6 @@ async def extrair_com_votacao(texto: str) -> tuple[Pedido, bool, list[Pedido]]:
     votos = [r.final_output for r in resultados]   # tira o Pedido de dentro de cada envelope
     pedido, divergencia = votar(votos)
     return pedido, divergencia, votos
-
 
 def votar(votos: list[Pedido]) -> tuple[Pedido, bool]:
     """(PRONTO) Maioria por campo. Sem maioria (2 de 3) em `tipo` ou nas datas -> divergencia=True: o sistema vai
@@ -127,12 +118,10 @@ def votar(votos: list[Pedido]) -> tuple[Pedido, bool]:
             divergencia = True
     return votos[0].model_copy(update=decidido), divergencia
 
-
 def _demo_extracao() -> None:
     for nome in ("C1_abono_simples", "C2_ferias_com_venda", "C5_sem_matricula", "C11_diaria_exterior"):
         pedido = extrair(CASOS[nome]["pedido"])
         print(f"\n{nome}\n  {pedido.model_dump()}")
-
 
 def _demo_votacao() -> None:
     for nome in ("C1_abono_simples", "C2_ferias_com_venda", "C9_divergencia"):
@@ -150,7 +139,6 @@ def _demo_votacao() -> None:
     for instrucoes in INSTRUCOES_VOTANTES:
         Runner.run_sync(criar_extrator(instrucoes), texto)
     print(f"\nC2 em sequência: {time.perf_counter() - inicio:.1f}s (compare com o tempo do C2 em paralelo, acima)")
-
 
 if __name__ == "__main__":
     print(f"[modelo] {MODELO}")

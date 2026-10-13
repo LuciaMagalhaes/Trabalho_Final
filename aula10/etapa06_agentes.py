@@ -25,13 +25,11 @@ from etapa04_ferramentas import cotacao_usd_brl
 
 CONFIG = ModelSettings(temperature=0)
 
-
 # ------------------------------------------------------------------ tools (PRONTAS)
 @function_tool
 async def consultar_normas(tema: str) -> str:
     """Regras da norma interna sobre um tema: férias, prazos, escala, abono, diária, aprovação, saúde ou dados."""
     return json.dumps(await chamar_mcp_async("consultar_normas", {"tema": tema}), ensure_ascii=False)
-
 
 @function_tool
 async def consultar_escala(equipe: str, inicio: str, fim: str) -> str:
@@ -39,12 +37,10 @@ async def consultar_escala(equipe: str, inicio: str, fim: str) -> str:
     return json.dumps(await chamar_mcp_async("consultar_escala", {"equipe": equipe, "inicio": inicio, "fim": fim}),
                       ensure_ascii=False)
 
-
 @function_tool
 async def tabela_diarias(tipo_destino: str) -> str:
     """Moeda e valor da diária para o tipo de destino: capital, interior ou exterior."""
     return json.dumps(await chamar_mcp_async("tabela_diarias", {"tipo_destino": tipo_destino}), ensure_ascii=False)
-
 
 @function_tool
 async def consultar_remuneracao(matricula: str) -> str:
@@ -52,13 +48,11 @@ async def consultar_remuneracao(matricula: str) -> str:
     print(f"[tool] consultar_remuneracao({matricula}) EXECUTOU")  # o 🆕 B prova que, barrada, ela NÃO executa
     return json.dumps(await chamar_mcp_async("consultar_remuneracao", {"matricula": matricula}), ensure_ascii=False)
 
-
 @function_tool
 def cotacao_dolar() -> str:
     """Cotação atual do dólar em reais (USD->BRL). Devolve 'indisponível' se a API falhar: nunca invente o câmbio."""
     cotacao = cotacao_usd_brl()
     return f"{cotacao:.4f}" if cotacao else "indisponível"
-
 
 # ------------------------------------------------------------------ ETAPA 6.1: especialistas
 def criar_normas() -> Agent:
@@ -76,7 +70,6 @@ def criar_normas() -> Agent:
 
     return normas
 
-
 def criar_escala() -> Agent:
 
     escala = Agent(
@@ -91,7 +84,6 @@ def criar_escala() -> Agent:
         model_settings=CONFIG,
     )
     return escala
-
 
 def criar_financeiro() -> Agent:
     financeiro = Agent(
@@ -109,7 +101,6 @@ def criar_financeiro() -> Agent:
     )
     return financeiro
 
-
 def criar_redator() -> Agent:
     redator = Agent(
         name="Redator",
@@ -123,7 +114,6 @@ def criar_redator() -> Agent:
         model_settings=CONFIG
     )
     return redator
-
 
 # ------------------------------------------------------------------ ETAPA 6.2: coordenador
 def criar_coordenador(hooks: RunHooks | None = None, tools_extras: list | None = None) -> Agent:

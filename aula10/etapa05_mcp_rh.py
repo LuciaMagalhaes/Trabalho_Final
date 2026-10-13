@@ -45,18 +45,15 @@ TOKEN_REGISTRO = os.getenv("TOKEN_REGISTRO", "")
 DECISOES_VALIDAS = {"deferido", "indeferido", "indeferido_pela_chefia"}
 TIPOS_COM_CHEFIA = {"ferias", "diaria"}  # regra N8
 
-
 def _ler_registros() -> dict:
     """(PRONTO) {protocolo: registro} gravados até agora."""
     if ARQUIVO_REGISTROS.exists():
         return json.loads(ARQUIVO_REGISTROS.read_text(encoding="utf-8"))
     return {}
 
-
 def _gravar_registros(registros: dict) -> None:
-    """(PRONTO)"""
+    """(PRONTO) Grava {protocolo: registro} em ARQUIVO_REGISTROS, com indent=2 e UTF-8."""
     ARQUIVO_REGISTROS.write_text(json.dumps(registros, ensure_ascii=False, indent=2), encoding="utf-8")
-
 
 # ------------------------------------------------------------------ ETAPA 5.1: leitura
 @mcp.tool()
@@ -72,7 +69,6 @@ def consultar_servidor(matricula: str) -> dict:
         return {"erro": "matrícula não encontrada"}
     campos = ["matricula", "nome", "cargo", "equipe", "saldo_ferias_dias", "abonos_restantes", "chefia"]
     return {c: servidor[c] for c in campos}
-
 
 @mcp.tool()
 def consultar_escala(equipe: str, inicio: str, fim: str) -> dict:
@@ -93,7 +89,6 @@ def consultar_escala(equipe: str, inicio: str, fim: str) -> dict:
                     if a["equipe"] == equipe and a["inicio"] <= fim and inicio <= a["fim"]]  # sobreposição
     return {"equipe": equipe, "tamanho_equipe": tamanho, "limite_afastados": limite, "afastamentos": afastamentos}
 
-
 @mcp.tool()
 def consultar_normas(tema: str) -> dict:
     """Regras da Norma Interna nº 1/2026 sobre um tema.
@@ -104,7 +99,6 @@ def consultar_normas(tema: str) -> dict:
     """
 
     return {"tema": tema, "regras": normas(tema)}
-
 
 @mcp.tool()
 def tabela_diarias(tipo_destino: str) -> dict:
@@ -121,7 +115,6 @@ def tabela_diarias(tipo_destino: str) -> dict:
         return {"erro": f"tipo_destino inválido: use um de {sorted(tabela)}"}
     return {"tipo_destino": tipo_destino, **tabela[tipo_destino]}
 
-
 @mcp.tool()
 def consultar_remuneracao(matricula: str) -> dict:
     """[RESTRITA] Salário-base de um servidor. Uso exclusivo do cálculo financeiro (venda de férias, N2).
@@ -134,7 +127,6 @@ def consultar_remuneracao(matricula: str) -> dict:
     if servidor is None:
         return {"erro": "matrícula não encontrada"}
     return {"matricula": servidor["matricula"], "salario_base": servidor["salario_base"]}
-
 
 # ------------------------------------------------------------------ ETAPA 5.2 / 9.2 / 9.3: escrita
 def _auditar(protocolo: str, decisao_acesso: str, motivo: str, parametros: dict) -> None:
@@ -154,7 +146,6 @@ def _auditar(protocolo: str, decisao_acesso: str, motivo: str, parametros: dict)
     }
     with open(ARQUIVO_AUDITORIA, "a", encoding="utf-8") as arquivo:
         arquivo.write(json.dumps(linha, ensure_ascii=False) + "\n")
-
 
 @mcp.tool()
 def registrar_decisao(protocolo: str, matricula: str, tipo: str, inicio: str, fim: str, decisao: str,
@@ -199,7 +190,6 @@ def registrar_decisao(protocolo: str, matricula: str, tipo: str, inicio: str, fi
     chefia = (carregar_servidores().get(matricula) or {}).get("chefia")
     if decisao == "deferido" and tipo in TIPOS_COM_CHEFIA and aprovador != chefia:
         return negar(f"o aprovador {aprovador} não é a chefia imediata ({chefia}) do servidor (N8)")
-
     
     registros = _ler_registros()
     if protocolo in registros:  # idempotência: o mesmo pedido não grava duas vezes
@@ -209,7 +199,6 @@ def registrar_decisao(protocolo: str, matricula: str, tipo: str, inicio: str, fi
     _gravar_registros(registros)
     _auditar(protocolo, "ALLOW", "registrado", parametros)
     return {"sucesso": True, "duplicado": False, "protocolo": protocolo}
-
 
 if __name__ == "__main__":
     mcp.run(transport="stdio")
