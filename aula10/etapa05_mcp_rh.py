@@ -5,8 +5,8 @@ Os dados saem de dentro do agente e passam a morar num PROCESSO SEPARADO, que fa
 nós do grafo (Etapa 7, via cliente_mcp.chamar_mcp) só enxergam as tools abaixo: nunca os CSVs.
 
 ESQUELETO: implemente as etapas na ordem (troque cada raise NotImplementedError pelo código da etapa).
-  ETAPA 5.1 -- as 5 tools de LEITURA (docstrings e tipos caprichados: é o "schema" que o LLM lê).
-               Convenção deste server: toda tool devolve UM dict (veja o comentário em consultar_normas).
+  ETAPA 5.1 -- as 5 tools de LEITURA: declare cada uma com @mcp.tool(), escreva a DOCSTRING (é o "schema" que o LLM
+               lê) e devolva o resultado da consulta pronta de dados_rh.py. Toda tool devolve UM dict.
   ETAPA 5.2 -- a tool de ESCRITA registrar_decisao, IDEMPOTENTE (protocolo repetido não duplica)
   ETAPA 9.2 -- autorização NO SERVER: token + regra N8 (chefia certa, nunca o próprio servidor) + decisão num enum
   ETAPA 9.3 -- auditoria: toda tentativa de escrita (ALLOW ou DENY) vira uma linha em saidas/auditoria.jsonl
@@ -19,7 +19,7 @@ REFERÊNCIAS NAS AULAS
   aula5/exemplos/10_seguranca/server_seguro.py token, enum fechado e auditoria NO SERVER        <- o mais parecido (9.2/9.3)
 
 Testar sem agente (MCP Inspector, precisa de Node.js):
-    npx @modelcontextprotocol/inspector python mcp_rh.py
+    npx @modelcontextprotocol/inspector python etapa05_mcp_rh.py
 
 Pronto quando: o Inspector lista as 6 tools; registrar C1 duas vezes gera um único registro.
 """
@@ -30,7 +30,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 from mcp.server.mcpserver import MCPServer
 
-from dados_rh import PASTA, SAIDAS, carregar_diarias, carregar_escala, carregar_servidores, normas
+from dados_rh import (PASTA, SAIDAS, carregar_diarias, carregar_escala, carregar_servidores, diaria, escala_da_equipe,
+                      normas, remuneracao, servidor_publico)
 
 # O server roda como SUBPROCESSO: ele não herda o ambiente de quem o chamou. Por isso carrega o .env sozinho
 # (mesmo cuidado de aula5/exemplos/02_mcp_basico/database.py).
@@ -58,9 +59,6 @@ def _gravar_registros(registros: dict) -> None:
 
 
 # ------------------------------------------------------------------ ETAPA 5.1: leitura
-"""TODO ETAPA 5.1: docstring. Cadastro de UM servidor, SEM o salário."""
-    # Mesmo conteúdo da tool da Etapa 1, agora no server. Matrícula inexistente: {"erro": "matrícula não encontrada"}.
-    # raise NotImplementedError("ETAPA 5.1: consultar_servidor")
 @mcp.tool()
 def consultar_servidor(matricula: str) -> dict:
     """Cadastro de UM servidor: nome, cargo, equipe, saldo de férias, abonos restantes e chefia imediata.
@@ -74,13 +72,8 @@ def consultar_servidor(matricula: str) -> dict:
         return {"erro": "matrícula não encontrada"}
     campos = ["matricula", "nome", "cargo", "equipe", "saldo_ferias_dias", "abonos_restantes", "chefia"]
     return {c: servidor[c] for c in campos}
-    
 
-"""TODO ETAPA 5.1: docstring. Afastamentos da equipe que se sobrepõem ao período e o limite da regra N5."""
-    # Devolva {"equipe", "tamanho_equipe", "limite_afastados" (30% arredondado p/ baixo, mínimo 1),
-    #          "afastamentos": [...os de carregar_escala() da equipe com sobreposição de datas...]}
-    # Duas faixas [a1, a2] e [b1, b2] se sobrepõem quando a1 <= b2 e b1 <= a2 (dá para comparar as strings AAAA-MM-DD).
-    # raise NotImplementedError("ETAPA 5.1: consultar_escala")
+
 @mcp.tool()
 def consultar_escala(equipe: str, inicio: str, fim: str) -> dict:
     """Afastamentos já marcados de uma equipe que se sobrepõem a um período, e o limite da regra N5.
@@ -100,13 +93,7 @@ def consultar_escala(equipe: str, inicio: str, fim: str) -> dict:
                     if a["equipe"] == equipe and a["inicio"] <= fim and inicio <= a["fim"]]  # sobreposição
     return {"equipe": equipe, "tamanho_equipe": tamanho, "limite_afastados": limite, "afastamentos": afastamentos}
 
-   
 
-"""TODO ETAPA 5.1: docstring (diga quais temas existem: férias, prazos, escala, abono, diária, aprovação...)."""
-# Devolva {"tema": tema, "regras": normas(tema)} (normas() está em dados_rh.py).
-# Por que um dict e não a lista direto? Uma tool MCP que devolve LISTA manda cada item como um conteúdo separado:
-# quem chama não distingue "lista com 1 regra" de "1 dict". Neste server, TODA tool devolve UM dict.
-# raise NotImplementedError("ETAPA 5.1: consultar_normas")
 @mcp.tool()
 def consultar_normas(tema: str) -> dict:
     """Regras da Norma Interna nº 1/2026 sobre um tema.
@@ -117,10 +104,7 @@ def consultar_normas(tema: str) -> dict:
     """
 
     return {"tema": tema, "regras": normas(tema)}
-    
 
-"""TODO ETAPA 5.1: docstring. Moeda e valor da diária para capital, interior ou exterior."""
-# raise NotImplementedError("ETAPA 5.1: tabela_diarias")
 
 @mcp.tool()
 def tabela_diarias(tipo_destino: str) -> dict:
@@ -138,8 +122,6 @@ def tabela_diarias(tipo_destino: str) -> dict:
     return {"tipo_destino": tipo_destino, **tabela[tipo_destino]}
 
 
-"""[RESTRITA] TODO ETAPA 5.1: docstring. Salário-base de um servidor (só o Financeiro deve usar, ver 🆕 B)."""
-# raise NotImplementedError("ETAPA 5.1: consultar_remuneracao")
 @mcp.tool()
 def consultar_remuneracao(matricula: str) -> dict:
     """[RESTRITA] Salário-base de um servidor. Uso exclusivo do cálculo financeiro (venda de férias, N2).
@@ -154,21 +136,25 @@ def consultar_remuneracao(matricula: str) -> dict:
     return {"matricula": servidor["matricula"], "salario_base": servidor["salario_base"]}
 
 
-
 # ------------------------------------------------------------------ ETAPA 5.2 / 9.2 / 9.3: escrita
 def _auditar(protocolo: str, decisao_acesso: str, motivo: str, parametros: dict) -> None:
     # ETAPA 9.3 -- acrescente UMA linha JSON em ARQUIVO_AUDITORIA com: quando (datetime.now().isoformat()),
     #   thread_id, quem pediu (aprovador), tool ("registrar_decisao"), protocolo, decisao_acesso ("ALLOW"/"DENY"),
     #   motivo e os parâmetros (SEM o token e SEM o despacho inteiro).
     #   Referência: aula5/exemplos/10_seguranca/server_seguro.py (_registrar_auditoria), aqui em JSON Lines.
-    #   Até fazer a 9.3, este pass deixa a escrita funcionar sem auditoria.
-    pass
+    linha = {
+        "quando": datetime.now().isoformat(),
+        "thread_id": parametros.get("thread_id", ""),
+        "quem": parametros.get("aprovador"),
+        "tool": "registrar_decisao",
+        "protocolo": protocolo,
+        "decisao_acesso": decisao_acesso,          # "ALLOW" ou "DENY"
+        "motivo": motivo,
+        "parametros": parametros,                  # já vem SEM o token e SEM o despacho
+    }
+    with open(ARQUIVO_AUDITORIA, "a", encoding="utf-8") as arquivo:
+        arquivo.write(json.dumps(linha, ensure_ascii=False) + "\n")
 
-# ETAPA 5.2 -- grave em ARQUIVO_REGISTROS (use _ler_registros/_gravar_registros).
-    #   Protocolo já existe -> NÃO grave de novo; devolva {"sucesso": True, "duplicado": True, ...}.
-    #   Senão grave {**parametros, "despacho": despacho, "registrado_em": ...} e devolva {"sucesso": True, ...}.
-    #   Audite com ALLOW (9.3).
-    # raise NotImplementedError("ETAPA 5.2: registrar_decisao")
 
 @mcp.tool()
 def registrar_decisao(protocolo: str, matricula: str, tipo: str, inicio: str, fim: str, decisao: str,
@@ -200,6 +186,19 @@ def registrar_decisao(protocolo: str, matricula: str, tipo: str, inicio: str, fi
     #   - decisao == "deferido" e tipo in TIPOS_COM_CHEFIA e aprovador != chefia do servidor no cadastro.
     #   Devolva {"sucesso": False, "erro": "..."} -- quem nega é o SERVER, não o agente.
     #   Referência: aula5/exemplos/10_seguranca/server_seguro.py (alterar_status_ocorrencia)
+    def negar(motivo: str) -> dict:
+        _auditar(protocolo, "DENY", motivo, parametros)
+        return {"sucesso": False, "erro": f"{motivo}. Operação negada e registrada em auditoria."}
+
+    if not TOKEN_REGISTRO or token != TOKEN_REGISTRO:
+        return negar("token de registro inválido")
+    if decisao not in DECISOES_VALIDAS:
+        return negar(f"decisão inválida ({decisao}); use uma de {sorted(DECISOES_VALIDAS)}")
+    if aprovador == matricula:
+        return negar("ninguém aprova o próprio pedido (N8)")
+    chefia = (carregar_servidores().get(matricula) or {}).get("chefia")
+    if decisao == "deferido" and tipo in TIPOS_COM_CHEFIA and aprovador != chefia:
+        return negar(f"o aprovador {aprovador} não é a chefia imediata ({chefia}) do servidor (N8)")
 
     
     registros = _ler_registros()
@@ -210,7 +209,6 @@ def registrar_decisao(protocolo: str, matricula: str, tipo: str, inicio: str, fi
     _gravar_registros(registros)
     _auditar(protocolo, "ALLOW", "registrado", parametros)
     return {"sucesso": True, "duplicado": False, "protocolo": protocolo}
-
 
 
 if __name__ == "__main__":

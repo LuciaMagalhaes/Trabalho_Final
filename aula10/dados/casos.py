@@ -46,14 +46,15 @@ CASOS = {
     },
     "C9_divergencia": {
         "pedido": "Matrícula 1002. Queria tirar uns dez dias perto da Páscoa de 2027, e talvez vender uma parte.",
-        "esperado": ("os 3 extratores podem DIVERGIR nas datas e na venda -> votação; se divergirem, "
-                     "o sistema pede esclarecimento em vez de adivinhar"),
+        "esperado": ("pedido vago: sem datas exatas -> pede os dados. Com o opcional 🆕 A, os 3 extratores podem "
+                     "DIVERGIR -> votação -> divergencia=True -> pede esclarecimento em vez de adivinhar"),
     },
     "C10_zona_cinzenta": {
         "pedido": ("Matrícula 1001. Meu pai foi internado e eu queria ficar com ele alguns dias na semana que vem. "
                    "Não sei se peço férias, abono ou outra coisa."),
-        "esperado": ("nota do guardrail na zona cinzenta (saúde de terceiro, tipo indefinido) -> PAUSA em "
-                     "triagem_humana para um atendente do RH decidir; 'sim' segue, 'nao' recusa com orientação"),
+        "esperado": ("sem o 🆕 C: passa ou é bloqueado conforme o LIMIAR e, se passar, pede os dados (não há data exata). "
+                     "Com o opcional 🆕 C: nota na zona cinzenta -> PAUSA em triagem_humana para um atendente do RH "
+                     "decidir; 'sim' segue, 'nao' recusa com orientação"),
     },
     "C11_diaria_exterior": {
         "pedido": "Matrícula 1003. Vou a serviço a Buenos Aires de 08/06/2027 a 11/06/2027 para um congresso.",

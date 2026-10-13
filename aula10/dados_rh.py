@@ -6,6 +6,9 @@ dados_rh.py -- (PRONTO) leitura dos arquivos de dados/. Não é o foco do exerc�
     carregar_diarias()                        # {"exterior": {"moeda": "USD", "valor_diaria": 320.0}, ...}
     carregar_feriados_locais()                # {"2027-04-21": "Tiradentes", ...}  (plano B da API)
     normas("ferias")                          # [{"codigo": "N1", "tema": "férias", "regra": "..."}]
+
+Consultas prontas para as tools do MCP Server (Etapa 5): servidor_publico(), escala_da_equipe(), diaria(),
+remuneracao(). Elas só cuidam dos DADOS; declarar a tool e escrever a docstring é com você.
 """
 import csv
 import json
@@ -66,6 +69,42 @@ def normas(tema: str | None = None) -> list[dict]:
         regras = [r for r in regras if sem_acento(r["tema"]) == sem_acento(tema)]
     return regras
 
+
+
+# ------------------------------------------------------------------ consultas usadas pelo MCP Server (Etapa 5)
+CAMPOS_PUBLICOS = ("matricula", "nome", "cargo", "equipe", "saldo_ferias_dias", "abonos_restantes", "chefia")
+
+
+def servidor_publico(matricula: str) -> dict:
+    """Cadastro de UM servidor SEM o salário, ou {"erro": ...} se a matrícula não existe."""
+    servidor = carregar_servidores().get(str(matricula).strip())
+    if servidor is None:
+        return {"erro": "matrícula não encontrada"}
+    return {campo: servidor[campo] for campo in CAMPOS_PUBLICOS}
+
+
+def escala_da_equipe(equipe: str, inicio: str, fim: str) -> dict:
+    """Afastamentos da equipe que se sobrepõem a [inicio, fim] e o limite da regra N5 (30%, mínimo 1)."""
+    tamanho = sum(1 for s in carregar_servidores().values() if sem_acento(s["equipe"]) == sem_acento(equipe))
+    if tamanho == 0:
+        return {"erro": f"equipe não encontrada: {equipe}"}
+    afastamentos = [a for a in carregar_escala()
+                    if sem_acento(a["equipe"]) == sem_acento(equipe) and a["inicio"] <= fim and inicio <= a["fim"]]
+    return {"equipe": equipe, "tamanho_equipe": tamanho, "limite_afastados": max(1, int(tamanho * 0.3)),
+            "afastamentos": afastamentos}
+
+
+def diaria(tipo_destino: str) -> dict:
+    """Moeda e valor da diária do tipo de destino, ou {"erro": ...}."""
+    return carregar_diarias().get(sem_acento(tipo_destino), {"erro": "use capital, interior ou exterior"})
+
+
+def remuneracao(matricula: str) -> dict:
+    """Salário-base de um servidor (dado RESTRITO), ou {"erro": ...}."""
+    servidor = carregar_servidores().get(str(matricula).strip())
+    if servidor is None:
+        return {"erro": "matrícula não encontrada"}
+    return {"matricula": servidor["matricula"], "salario_base": servidor["salario_base"]}
 
 if __name__ == "__main__":
     print(len(carregar_servidores()), "servidores;", len(carregar_escala()), "afastamentos;",
