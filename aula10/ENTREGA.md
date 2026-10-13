@@ -1,8 +1,8 @@
 # Entrega: Assistente de Gestão de Pessoas
 
 **Aluno(s):** Thiago Lobo Leite
-**Até onde chegou:** (X) Marco mínimo (Etapa 6)  (X) Marco completo (Etapa 9)  ( ) Etapas 10–11
-**Opcionais e bônus feitos:** (X) 🆕 A  (X) 🆕 B  ( ) 🆕 C  ( ) Outro: ______
+**Até onde chegou:** (X) Marco mínimo (Etapa 6)  (X) Marco completo (Etapa 9)  (X) Etapas 10–11
+**Opcionais e bônus feitos:** (X) 🆕 A  (X) 🆕 B  (X) 🆕 C  ( ) Outro: ______
 
 ## Etapa 0: quem verifica cada regra?
 
@@ -25,29 +25,28 @@ Compare **caminho e estado**, não o texto do despacho.
 
 | Caso | Caminho percorrido | Resultado (bloqueado / pediu dados / triagem humana / indeferido / pausou na chefia / registrado + protocolo) | Bateu com o esperado? |
 |---|---|---|---|
-| C1_abono_simples | TODO (rodar) | | |
-| C2_ferias_com_venda | | | |
-| C3_dado_de_saude | | | |
-| C4_fora_do_escopo | | | |
-| C5_sem_matricula | | | |
-| C6_conflito_de_escala | | | |
-| C7_autoaprovacao | | | |
-| C8_idempotencia | | | |
-| C9_divergencia | | | |
-| C10_zona_cinzenta | | | |
-| C11_diaria_exterior | | | |
-| C12_inicio_proibido | | | |
+| C1_abono_simples | receber → proteger_entrada → extrair → identificar_servidor → calcular_periodo → (escala, financeiro, normas) → consolidar → redigir_despacho → validar → registrar | registrado, **deferido** sem chefia, protocolo `ae788d33` | Sim |
+| C2_ferias_com_venda | … → calcular_periodo → (escala, financeiro, normas) → consolidar → redigir_despacho → validar → **pausa** | **pausou na chefia** (`aprovacao_chefia`); retomado com `sim 1010` → registrado `b7b6f485` | Sim |
+| C3_dado_de_saude | receber → proteger_entrada → recusar | **bloqueado** na entrada (regex de CPF/CID), nada chega ao extrator | Sim (bloqueou; a mensagem saiu a do CPF, que é checado antes do CID na regex pronta) |
+| C4_fora_do_escopo | receber → proteger_entrada → recusar | **bloqueado** (fora do escopo, classificador LLM) | Sim |
+| C5_sem_matricula | receber → proteger_entrada → extrair → pedir_dados | **pediu dados** (sem matrícula e sem datas exatas) | Sim |
+| C6_conflito_de_escala | … → (escala, financeiro, normas) → consolidar (**N5**) → redigir_despacho → validar → registrar | **indeferido** (N5: 1006 afastado até 19/07), com sugestão de novas datas; registrado `6f1b47d7` sem chefia | Sim |
+| C7_autoaprovacao | receber → proteger_entrada → recusar | **bloqueado** na entrada; com `--sem-guardrail`, as regras indeferem (N4) e o server nega autoaprovação (N8) | Sim |
+| C8_idempotencia | mesmo caminho do C1 → registrar | **mesmo protocolo** `ae788d33`; o server respondeu `duplicado: True`, nada gravado de novo | Sim |
+| C9_divergencia | receber → proteger_entrada → extrair → pedir_dados | **pediu dados** (pedido vago, sem datas exatas) | Sim |
+| C10_zona_cinzenta | receber → proteger_entrada → extrair → pedir_dados | **pediu dados** (com `USAR_TRIAGEM_HUMANA = False`); com o 🆕 C ligado, pausa em `triagem_humana` | Sim |
+| C11_diaria_exterior | … → (escala, financeiro, normas) → consolidar → redigir_despacho → validar → **pausa** | **pausou na chefia** (1011); Financeiro com diárias em USD convertidas pela cotação | Sim |
+| C12_inicio_proibido | … → (escala, financeiro, normas) → consolidar (**N3**) → redigir_despacho → validar → registrar | **indeferido** (N3: começa numa sexta, véspera de 01/05); registrado `7c458e62` | Sim (o Redator sugeriu 02/05, um domingo; o correto seria 03/05: erro de texto do LLM, a decisão é das regras) |
 
 ## O grafo
 
 ```mermaid
-%% versão da Etapa 7 (atualizar na Etapa 8, quando a chefia entrar no fluxo)
 graph TD;
     __start__ --> receber;
     receber --> proteger_entrada;
     proteger_entrada -. ok .-> extrair;
     proteger_entrada -. bloqueado .-> recusar;
-    proteger_entrada -. duvida .-> triagem_humana;
+    proteger_entrada -. "duvida (🆕 C)" .-> triagem_humana;
     triagem_humana -. segue .-> extrair;
     triagem_humana -. recusa .-> recusar;
     extrair -. ok .-> identificar_servidor;
@@ -63,7 +62,10 @@ graph TD;
     consolidar --> redigir_despacho;
     redigir_despacho --> validar;
     validar -. redigir .-> redigir_despacho;
-    validar -. chefia/registrar .-> registrar;
+    validar -. chefia .-> aprovacao_chefia;
+    validar -. registrar .-> registrar;
+    aprovacao_chefia -. redigir .-> redigir_despacho;
+    aprovacao_chefia -. registrar .-> registrar;
     pedir_dados --> __end__;
     recusar --> __end__;
     registrar --> __end__;
@@ -85,7 +87,7 @@ graph TD;
 
 - 🆕 A: votos e decisão do C9: TODO ; tempo dos 3 extratores em paralelo ___ s, em sequência ___ s
 - 🆕 B: saída do `python etapa06_linear.py --governanca`: (a) BARRADO: Coordenador não pode usar consultar_remuneracao (a tool não executou); (b) BARRADO: orçamento de tools estourado (2 de 1)
-- 🆕 C: caminho do C10 com a triagem humana (sim e não): (não feito)
+- 🆕 C: caminho do C10 com a triagem humana (sim e não): TODO (rodar com USAR_TRIAGEM_HUMANA = True)
 
 ## Reflexão (até 3 linhas cada)
 
@@ -113,3 +115,7 @@ graph TD;
 | `etapa06_agentes.py` | `aula4/ex03_agente_as_tool.py`, `aula7/exemplos/02_agentes_especializados/main.py` | `as_tool` com `hooks` e `failure_error_function=None` |
 | `etapa10_governanca.py` (🆕 B) | `aula3/agente_hook2.py` | Hook que BARRA (permissões e orçamentos) em vez de só imprimir |
 | `etapa06_linear.py` | `aula6/exemplos/01_fluxo_linear/main.py` | Os 9 passos encadeados em Python puro |
+| `etapa07_grafo.py` (8.4, 9.4) | `aula7/exemplos/06_human_in_the_loop/main.py` (retomar), `aula8/exemplos/05_guardrail_saida` | `retomar` lendo `get_state().next`; despacho trocado por "NÃO REGISTRADO" quando o server nega |
+| `etapa05_mcp_rh.py` (9.2, 9.3) | `aula5/exemplos/10_seguranca/server_seguro.py` | token, enum de decisões, N8 (autoaprovação e chefia certa) e auditoria em JSON Lines |
+| `etapa10_observabilidade.py`, `etapa10_governanca.py` (10.1–10.3) | `aula3/agente_hook2.py`; solução consultada do colega Tiago (github.com/tiagoASF/atividade-final-multiagentes) | `medido()` por nó, `resumo()` e o hook registrando tool, argumentos e tokens |
+| `etapa07_grafo.py` (🆕 C: `proteger_entrada` com duas faixas, `triagem_humana`, `rotear_triagem`) | `aula7/exemplos/06_human_in_the_loop/main.py`; solução consultada do colega Tiago | humano decidindo a ENTRADA, com a orientação anexada ao texto |
