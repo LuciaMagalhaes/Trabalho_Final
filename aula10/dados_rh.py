@@ -20,11 +20,9 @@ DADOS = PASTA / "dados"
 SAIDAS = PASTA / "saidas"
 SAIDAS.mkdir(exist_ok=True)
 
-
 def sem_acento(texto: str) -> str:
     """'Férias' -> 'ferias'. Útil para comparar temas e nomes digitados de jeitos diferentes."""
     return "".join(c for c in unicodedata.normalize("NFD", texto) if unicodedata.category(c) != "Mn").lower().strip()
-
 
 def carregar_servidores() -> dict[str, dict]:
     """Cadastro indexado pela matrícula. Números já convertidos; `chefia` vazia vira None."""
@@ -38,12 +36,10 @@ def carregar_servidores() -> dict[str, dict]:
             servidores[linha["matricula"]] = linha
     return servidores
 
-
 def carregar_escala() -> list[dict]:
     """Afastamentos já marcados (datas no formato AAAA-MM-DD)."""
     with open(DADOS / "escala.csv", encoding="utf-8", newline="") as arquivo:
         return list(csv.DictReader(arquivo))
-
 
 def carregar_diarias() -> dict[str, dict]:
     """Tabela de diárias por tipo de destino (capital, interior, exterior)."""
@@ -51,12 +47,10 @@ def carregar_diarias() -> dict[str, dict]:
         return {l["tipo_destino"]: {"moeda": l["moeda"], "valor_diaria": float(l["valor_diaria"])}
                 for l in csv.DictReader(arquivo)}
 
-
 def carregar_feriados_locais() -> dict[str, str]:
     """Cópia local dos feriados de 2027, no formato da BrasilAPI: {data: nome}."""
     with open(DADOS / "feriados_2027.json", encoding="utf-8") as arquivo:
         return {f["date"]: f["name"] for f in json.load(arquivo)}
-
 
 def normas(tema: str | None = None) -> list[dict]:
     """As regras N1..N10 de dados/normas.md. Com `tema`, só as daquele tema (sem diferenciar acento/maiúscula)."""
@@ -69,11 +63,8 @@ def normas(tema: str | None = None) -> list[dict]:
         regras = [r for r in regras if sem_acento(r["tema"]) == sem_acento(tema)]
     return regras
 
-
-
 # ------------------------------------------------------------------ consultas usadas pelo MCP Server (Etapa 5)
 CAMPOS_PUBLICOS = ("matricula", "nome", "cargo", "equipe", "saldo_ferias_dias", "abonos_restantes", "chefia")
-
 
 def servidor_publico(matricula: str) -> dict:
     """Cadastro de UM servidor SEM o salário, ou {"erro": ...} se a matrícula não existe."""
@@ -81,7 +72,6 @@ def servidor_publico(matricula: str) -> dict:
     if servidor is None:
         return {"erro": "matrícula não encontrada"}
     return {campo: servidor[campo] for campo in CAMPOS_PUBLICOS}
-
 
 def escala_da_equipe(equipe: str, inicio: str, fim: str) -> dict:
     """Afastamentos da equipe que se sobrepõem a [inicio, fim] e o limite da regra N5 (30%, mínimo 1)."""
@@ -93,11 +83,9 @@ def escala_da_equipe(equipe: str, inicio: str, fim: str) -> dict:
     return {"equipe": equipe, "tamanho_equipe": tamanho, "limite_afastados": max(1, int(tamanho * 0.3)),
             "afastamentos": afastamentos}
 
-
 def diaria(tipo_destino: str) -> dict:
     """Moeda e valor da diária do tipo de destino, ou {"erro": ...}."""
     return carregar_diarias().get(sem_acento(tipo_destino), {"erro": "use capital, interior ou exterior"})
-
 
 def remuneracao(matricula: str) -> dict:
     """Salário-base de um servidor (dado RESTRITO), ou {"erro": ...}."""
