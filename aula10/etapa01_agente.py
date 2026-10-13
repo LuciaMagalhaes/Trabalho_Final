@@ -59,8 +59,8 @@ def criar_atendente() -> Agent:
 
     agente = Agent(
     name="AtendenteRH",
-    instructions="Atende servidores, responde em português e de forma breve" \
-                 "Usa a tool quando a pergunta for sobre dados de um servidor" \
+    instructions="Atende servidores, responde em português e de forma breve. " \
+                 "Usa a tool quando a pergunta for sobre dados de um servidor. " \
                  "não inventa saldo de cabeça.",
     tools=[consultar_servidor],
 )
@@ -68,13 +68,10 @@ def criar_atendente() -> Agent:
 
 
 def main() -> None:
-
-    resultado = Runner.run_sync(
-            criar_atendente(),
-            "O que é abono pecuniário?"
-        )
-    
-    print(resultado.final_output)
+    agente = criar_atendente()
+    for pergunta in ("Qual o saldo de férias do servidor 1002?", "O que é abono pecuniário?"):
+        print(f"\n> {pergunta}")
+        print(Runner.run_sync(agente, pergunta).final_output)
 
 
 if __name__ == "__main__":

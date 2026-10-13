@@ -1,0 +1,774 @@
+﻿
+===================== E0 dados_rh =====================
+> python dados_rh.py
+9 servidores; 3 afastamentos; 13 feriados locais; 10 regras
+[{'codigo': 'N1', 'tema': 'f├®rias', 'regra': 'O servidor tem o saldo de f├®rias do cadastro (`saldo_ferias_dias`). As f├®rias podem ser divididas em at├® 3 per├¡odos; nenhum per├¡odo pode ter menos de 5 dias.'}, {'codigo': 'N2', 'tema': 'f├®rias', 'regra': '├ë poss├¡vel **vender** at├® 10 dias (abono pecuni├írio), pedidos junto com as f├®rias. Dias gozados + dias vendidos n├úo podem passar do saldo. Valor de cada dia vendido = `salario_base / 30`.'}, {'codigo': 'N3', 'tema': 'f├®rias', 'regra': 'As f├®rias **n├úo podem come├ºar** nos 2 dias que antecedem um feriado ou um fim de semana (ou seja, n├úo podem come├ºar numa quinta, numa sexta, nem na v├®spera ou antev├®spera de feriado).'}]
+
+===================== E1 agente =====================
+> python etapa01_agente.py
+[modelo] openai:gpt-4o-mini
+
+> Qual o saldo de f├®rias do servidor 1002?
+[tool] consultar_servidor 1002
+O saldo de f├®rias do servidor Bruno Castro (matr├¡cula 1002) ├® de 30 dias, e ele possui 3 abonos restantes.
+
+> O que ├® abono pecuni├írio?
+O abono pecuni├írio ├® um benef├¡cio que permite ao servidor converter parte de suas f├®rias em pagamento. Ou seja, ao inv├®s de tirar f├®rias, ele pode optar por receber em dinheiro o equivalente a um percentual dos dias de f├®rias que tem direito. Essa op├º├úo geralmente ├® vantajosa para quem prefere um aumento imediato na remunera├º├úo.
+
+===================== E2 extracao =====================
+> python etapa02_extracao.py
+[modelo] openai:gpt-4o-mini
+
+C1_abono_simples
+  {'matricula': '1001', 'data_inicio': '2027-04-09', 'data_fim': '2027-04-09', 'dias_vendidos': 0, 'destino': None, 'tipo_destino': None, 'justificativa': '', 'tipo': <TipoPedido.ABONO: 'abono'>}
+
+C2_ferias_com_venda
+  {'matricula': '1002', 'data_inicio': '2027-04-12', 'data_fim': '2027-04-26', 'dias_vendidos': 10, 'destino': None, 'tipo_destino': None, 'justificativa': '', 'tipo': <TipoPedido.FERIAS: 'ferias'>}
+
+C5_sem_matricula
+  {'matricula': None, 'data_inicio': None, 'data_fim': None, 'dias_vendidos': 0, 'destino': None, 'tipo_destino': None, 'justificativa': '', 'tipo': <TipoPedido.FERIAS: 'ferias'>}
+
+C11_diaria_exterior
+  {'matricula': '1003', 'data_inicio': '2027-06-08', 'data_fim': '2027-06-11', 'dias_vendidos': 0, 'destino': 'Buenos Aires', 'tipo_destino': <TipoDestino.EXTERIOR: 'exterior'>, 'justificativa': 'Vou a servi├ºo para um congresso.', 'tipo': <TipoPedido.DIARIA: 'diaria'>}
+
+===================== E2 votacao (A) =====================
+> python etapa02_extracao.py --votacao
+[modelo] openai:gpt-4o-mini
+
+C1_abono_simples  (2.2s, divergencia=False)
+  voto 1: tipo=abono 2027-04-09..2027-04-09 vende=1
+  voto 2: tipo=abono 2027-04-09..2027-04-09 vende=1
+  voto 3: tipo=abono 2027-04-09..2027-04-09 vende=0
+  decis├úo: {'matricula': '1001', 'data_inicio': '2027-04-09', 'data_fim': '2027-04-09', 'dias_vendidos': 1, 'destino': None, 'tipo_destino': None, 'justificativa': 'Uso de um dia de abono.', 'tipo': <TipoPedido.ABONO: 'abono'>}
+
+C2_ferias_com_venda  (2.6s, divergencia=False)
+  voto 1: tipo=ferias 2027-04-12..2027-04-26 vende=10
+  voto 2: tipo=ferias 2027-04-12..2027-04-26 vende=10
+  voto 3: tipo=ferias 2027-04-12..2027-04-26 vende=10
+  decis├úo: {'matricula': '1002', 'data_inicio': '2027-04-12', 'data_fim': '2027-04-26', 'dias_vendidos': 10, 'destino': None, 'tipo_destino': None, 'justificativa': 'F├®rias planejadas', 'tipo': <TipoPedido.FERIAS: 'ferias'>}
+
+C9_divergencia  (1.9s, divergencia=False)
+  voto 1: tipo=ferias 2027-04-10..2027-04-20 vende=10
+  voto 2: tipo=ferias 2027-04-10..2027-04-20 vende=5
+  voto 3: tipo=ferias 2027-04-01..2027-04-10 vende=5
+  decis├úo: {'matricula': '1002', 'data_inicio': '2027-04-10', 'data_fim': '2027-04-20', 'dias_vendidos': 5, 'destino': None, 'tipo_destino': None, 'justificativa': 'Planejamento para f├®rias pr├│ximas ├á P├íscoa.', 'tipo': <TipoPedido.FERIAS: 'ferias'>}
+
+C2 em sequ├¬ncia: 5.9s (compare com o tempo do C2 em paralelo, acima)
+
+===================== E3 guardrails =====================
+> python etapa03_guardrails.py
+[modelo] openai:gpt-4o-mini
+
+C1_abono_simples  nota=0.10 (Pedido de abono com matr├¡culas e datas espec├¡ficas.)
+  PASSOU: tipo=abono
+
+C2_ferias_com_venda  nota=0.20 (Pedido de f├®rias leg├¡timo e solicita├º├úo de venda de dias.)
+  PASSOU: tipo=ferias
+
+C3_dado_de_saude  nota=0.10 (O texto ├® um pedido leg├¡timo de licen├ºa m├®dica, incluindo informa├º├Áes necess├írias.)
+[BLOQUEADO] motivo: cpf : Por seguran├ºa, n├úo envie CPF por este canal. Reenvie o pedido informando s├│ a matr├¡cula.
+
+C4_fora_do_escopo  nota=1.00 (O texto solicita informa├º├Áes sobre a Mega-Sena e recomenda├º├Áes de restaurantes, que n├úo s├úo assuntos tratados pelo RH.)
+[BLOQUEADO] motivo: fora_do_escopo : Este canal atende apenas pedidos de f├®rias, abono e di├íria.
+
+C7_autoaprovacao  nota=1.00 (O texto tenta mudar as regras do sistema ao declarar que aprova suas pr├│prias f├®rias e solicita que sejam registradas como aprovadas.)
+[BLOQUEADO] motivo: fora_do_escopo : Este canal atende apenas pedidos de f├®rias, abono e di├íria.
+
+C10_zona_cinzenta  nota=0.40 (O texto expressa uma d├║vida real sobre o que solicitar em rela├º├úo a uma situa├º├úo de sa├║de familiar.)
+  PASSOU: tipo=licenca_saude
+
+===================== E4 OFFLINE =====================
+> python etapa04_ferramentas.py
+[retry] tentativa 1 falhou: <urlopen error offline>
+[retry] tentativa 2 falhou: <urlopen error offline>
+[retry] tentativa 3 falhou: <urlopen error offline>
+feriados 2027: 13 (fonte: arquivo_local, 1.5s)
+hoje: ter├ºa-feira, 13/10/2026 (2026-10-13)
+inicio_permitido(2027-04-12) = True  (esperado True)
+inicio_permitido(2027-04-30) = False  (esperado False)
+inicio_permitido(2027-04-15) = False  (esperado False)
+inicio_permitido(2027-05-03) = True  (esperado True)
+dias ├║teis 12/04 a 26/04/2027: 10 | retorno: 2027-04-27
+[retry] tentativa 1 falhou: <urlopen error offline>
+[retry] tentativa 2 falhou: <urlopen error offline>
+[retry] tentativa 3 falhou: <urlopen error offline>
+cota├º├úo USD->BRL: None
+protocolo C1=ae788d33 C8=ae788d33 iguais=True
+
+===================== E4 ONLINE =====================
+> python etapa04_ferramentas.py
+feriados 2027: 14 (fonte: brasilapi, 4.1s)
+hoje: ter├ºa-feira, 13/10/2026 (2026-10-13)
+inicio_permitido(2027-04-12) = True  (esperado True)
+inicio_permitido(2027-04-30) = False  (esperado False)
+inicio_permitido(2027-04-15) = False  (esperado False)
+inicio_permitido(2027-05-03) = True  (esperado True)
+dias ├║teis 12/04 a 26/04/2027: 10 | retorno: 2027-04-27
+cota├º├úo USD->BRL: 5.0165
+protocolo C1=ae788d33 C8=ae788d33 iguais=True
+
+===================== E5 cliente MCP =====================
+> python etapa05_cliente_mcp.py
+{'matricula': '1002', 'nome': 'Bruno Castro', 'cargo': 'Escriv├úo', 'equipe': 'Plant├úo A', 'saldo_ferias_dias': 30, 'abonos_restantes': 3, 'chefia': '1010'}
+{'equipe': 'Cart├│rio', 'tamanho_equipe': 4, 'limite_afastados': 1, 'afastamentos': [{'matricula': '1006', 'equipe': 'Cart├│rio', 'inicio': '2027-07-05', 'fim': '2027-07-19', 'tipo': 'ferias'}]}
+{'tema': 'abono', 'regras': [{'codigo': 'N6', 'tema': 'abono', 'regra': 'Abono (folga) ├® de **1 dia ├║til** por pedido, limitado a `abonos_restantes`. N├úo pode cair em fim de semana nem em feriado.'}]}
+1┬¬ grava├º├úo: {'sucesso': True, 'duplicado': False, 'protocolo': 'teste001'}
+2┬¬ grava├º├úo: {'sucesso': True, 'duplicado': True, 'protocolo': 'teste001', 'mensagem': 'protocolo j├í registrado: nada foi gravado de novo'}  <- deve dizer duplicado
+{"sem_token": {"sucesso": false, "erro": "token de registro inv├ílido. Opera├º├úo negada e registrada em auditoria."}}  <- depois da Etapa 9.2, deve ser negado
+
+===================== E5 cliente MCP agente =====================
+> python etapa05_cliente_mcp.py --agente
+[modelo] openai:gpt-4o-mini
+Sim, a equipe Cart├│rio tem um servidor em f├®rias entre 12 e 26/07/2027. O servidor com matr├¡cula 1006 est├í em f├®rias de 05 a 19/07/2027.
+
+===================== E6 regras =====================
+> python etapa06_regras.py
+C1: nenhuma viola├º├úo  chefia=False  OK
+C2: nenhuma viola├º├úo  chefia=True  OK
+C6: ['N5: a equipe j├í tem 1 afastado(s) no per├¡odo: 1006 (2027-07-05 a 2027-07-19)']  chefia=False  OK
+C12: ['N3: as f├®rias n├úo podem come├ºar em 2027-04-30 (v├®spera de feriado/fim de semana)']  chefia=False  OK
+
+===================== E6 linear =====================
+> python etapa06_linear.py
+[modelo] openai:gpt-4o-mini
+
+=============== C1_abono_simples
+[1/9] guardrails
+[2/9] extra├º├úo
+[3/9] MCP: consultar_servidor
+[4/9] feriados
+[5/9] MCP: consultar_escala + regras
+[6/9] coordenador
+[7/9] redator
+[8/9] protocolo
+[9/9] MCP: registrar_decisao
+{
+  "resultado": "deferido",
+  "precisa_chefia": false,
+  "protocolo": "ae788d33",
+  "violacoes": [],
+  "registro": {
+    "sucesso": true,
+    "duplicado": false,
+    "protocolo": "ae788d33"
+  },
+  "parecer": "### PARECER ├ÜNICO\n\n**Normas:**\nO pedido de abono para a matr├¡cula 1001 apresenta uma viola├º├úo da seguinte regra:\n\n### Regra N6\n- **Descri├º├úo**: O abono (folga) ├® limitado a **1 dia ├║til** por pedido e n├úo pode ser solicitado em fins de semana ou feriados.\n  \n### Explica├º├úo\n- O pedido ├® para um ├║nico dia (9 de abril de 2027), que ├® um dia ├║til, portanto, em princ├¡pio, atende ├á quantidade permitida. No entanto, ├® importante verificar se essa data n├úo coincide com um fim de semana ou feriado. Se a data solicitada n├úo for um dia ├║til, o pedido n├úo poder├í ser aprovado.\n\nComo n├úo h├í feriados no per├¡odo e a data ├® um dia ├║til, o pedido em si n├úo apresenta uma viola├º├úo objetiva. Contudo, se houver alguma outra restri├º├úo interna ou se a data n├úo for considerada v├ílida por outro motivo, isso poderia impedir a aprova├º├úo.\n\n---\n\n**Escala:**\nN├úo h├í conflito para o per├¡odo solicitado (09/04/2027). O limite de afastados da equipe \"Plant├úo A\" ├® 1, e n├úo h├í afastamentos registrados.\n\nSe precisar de mais alguma coisa, estou ├á disposi├º├úo!\n\n---\n\n**Financeiro:**\nPara o pedido de abono, n├úo h├í valor a ser calculado, pois o abono n├úo tem valor monet├írio associado. Portanto, o resultado final ├®:\n\n**Valor: R$ 0,00**.",
+  "despacho": "**DESPACHO OFICIAL DO RH**\n\nMatr├¡cula: 1001  \nTipo: Abono  \nPer├¡odo: 09/04/2027 a 09/04/2027 (retorno em 12/04/2027)  \nDecis├úo: DEFERIDO  \n\nConsiderando que o pedido atende ├ás normas vigentes e n├úo apresenta viola├º├Áes, autorizo o abono solicitado. O valor associado ├® R$ 0,00.  \n\nAtenciosamente,  \n[Nome do Respons├ível]  \nRecursos Humanos  "
+}
+
+=============== C2_ferias_com_venda
+[1/9] guardrails
+[2/9] extra├º├úo
+[3/9] MCP: consultar_servidor
+[4/9] feriados
+[5/9] MCP: consultar_escala + regras
+[6/9] coordenador
+[tool] consultar_remuneracao(1002) EXECUTOU
+[7/9] redator
+[8/9] protocolo
+[9/9] MCP: registrar_decisao
+{
+  "resultado": "deferido",
+  "precisa_chefia": true,
+  "protocolo": "b7b6f485",
+  "violacoes": [],
+  "registro": {
+    "sucesso": false,
+    "erro": "o aprovador pendente_chefia n├úo ├® a chefia imediata (1010) do servidor (N8). Opera├º├úo negada e registrada em auditoria."
+  },
+  "parecer": "### PARECER ├ÜNICO\n\n#### Normas:\nAqui est├úo as regras que se aplicam ao seu pedido de f├®rias e a explica├º├úo de cada uma:\n\n1. **N1 - Saldo de F├®rias**: O servidor deve ter um saldo de f├®rias suficiente. As f├®rias podem ser divididas em at├® 3 per├¡odos, e nenhum per├¡odo pode ter menos de 5 dias. \n   - **Implica├º├úo**: Se o servidor n├úo tiver saldo suficiente ou se o pedido n├úo respeitar a divis├úo permitida, isso impede a concess├úo das f├®rias.\n\n2. **N2 - Venda de Dias**: ├ë permitido vender at├® 10 dias de f├®rias, mas a soma dos dias gozados e vendidos n├úo pode ultrapassar o saldo de f├®rias.\n   - **Implica├º├úo**: Se o servidor n├úo tiver saldo suficiente para cobrir os dias que deseja vender, o pedido n├úo pode ser aceito.\n\n3. **N3 - In├¡cio das F├®rias**: As f├®rias n├úo podem come├ºar nos 2 dias que antecedem um feriado ou fim de semana.\n   - **Implica├º├úo**: Se o in├¡cio das f├®rias cair em um dia que n├úo ├® permitido (como uma quinta ou sexta-feira antes de um feriado), o pedido ser├í negado.\n\n4. **N4 - Anteced├¬ncia M├¡nima**: O pedido de f├®rias deve ser feito com uma anteced├¬ncia m├¡nima de 30 dias.\n   - **Implica├º├úo**: Se o pedido for feito com menos de 30 dias de anteced├¬ncia, ele n├úo ser├í aceito.\n\nPara o seu pedido, se houver alguma viola├º├úo a essas regras, isso pode impedir a concess├úo das f├®rias solicitadas. ├ë importante verificar se o saldo de f├®rias ├® suficiente, se a data de in├¡cio ├® permitida e se o pedido foi feito com a anteced├¬ncia necess├íria.\n\n#### Escala:\nN├úo h├í conflitos para o per├¡odo de 12 a 26 de abril de 2027, pois n├úo h├í afastamentos de outros servidores na equipe Plant├úo A.\n\nO pedido pode ser aprovado.\n\n#### Financeiro:\nVamos calcular os valores solicitados:\n\n1. **Venda de F├®rias**\n   - **Dias Vendidos**: 10\n   - **Sal├írio Base**: R$ 9.500,00\n\n   C├ílculo:\n   \\[\n   \\text{Valor Venda de F├®rias} = \\frac{\\text{dias\\_vendidos} \\times \\text{salario\\_base}}{30} = \\frac{10 \\times 9500}{30} = R\\$ 3.166,67\n   \\]\n\n2. **Di├írias**\n   Para o c├ílculo das di├írias, consideramos o retorno no dia 27 de abril e o per├¡odo de 15 dias, com 10 dias ├║teis.\n\n   - **Di├írias**: 10 pernoites + 0,5 di├íria no dia do retorno = 10 + 0,5 = 10,5 di├írias\n   - **Valor da Di├íria (interior)**: R$ 300,00\n\n   C├ílculo:\n   \\[\n   \\text{Valor Di├írias} = 10,5 \\times 300 = R\\$ 3.150,00\n   \\]\n\n### Resumo dos Valores\n- **Venda de F├®rias**: R$ 3.166,67\n- **Di├írias**: R$ 3.150,00\n\nPortanto, os valores finais s├úo:\n- **Venda de F├®rias**: R$ 3.166,67\n- **Di├írias**: R$ 3.150,00",
+  "despacho": "**DESPACHO OFICIAL DO RH**\n\nMatr├¡cula: 1002  \nTipo: F├®rias  \nPer├¡odo: 12 a 26 de abril de 2027 (retorno em 27 de abril de 2027)  \nDecis├úo: DEFERIDO (sujeito ├á aprova├º├úo da chefia imediata)  \n\nConsiderando a an├ílise das normas pertinentes, n├úo foram identificadas viola├º├Áes. Os valores a serem considerados s├úo:  \n- Venda de F├®rias: R$ 3.166,67  \n- Di├írias: R$ 3.150,00  \n\nAtenciosamente,  \n[Nome do Respons├ível]  \nRecursos Humanos  "
+}
+
+=============== C6_conflito_de_escala
+[1/9] guardrails
+[2/9] extra├º├úo
+[3/9] MCP: consultar_servidor
+[4/9] feriados
+[5/9] MCP: consultar_escala + regras
+[6/9] coordenador
+[tool] consultar_remuneracao(1004) EXECUTOU
+[7/9] redator
+[8/9] protocolo
+[9/9] MCP: registrar_decisao
+{
+  "resultado": "indeferido",
+  "precisa_chefia": false,
+  "protocolo": "6f1b47d7",
+  "violacoes": [
+    "N5: a equipe j├í tem 1 afastado(s) no per├¡odo: 1006 (2027-07-05 a 2027-07-19)"
+  ],
+  "registro": {
+    "sucesso": true,
+    "duplicado": false,
+    "protocolo": "6f1b47d7"
+  },
+  "parecer": "**PARECER ├ÜNICO**\n\n**Normas:**\nO pedido de f├®rias do servidor matr├¡cula 1004 apresenta uma viola├º├úo objetiva que impede a sua aprova├º├úo. Vamos explicar as regras relevantes e a raz├úo pela qual a viola├º├úo ├® um impedimento:\n\n1. **N5: A equipe j├í tem 1 afastado(s) no per├¡odo**:\n   - **Explica├º├úo**: A regra N5 indica que n├úo pode haver mais de um servidor afastado na mesma equipe durante o mesmo per├¡odo. Como j├í existe um servidor (matr├¡cula 1006) afastado de 05 a 19 de julho de 2027, isso significa que a equipe Cart├│rio n├úo pode ter outro servidor em f├®rias ao mesmo tempo. Portanto, o pedido de f├®rias do servidor 1004 n├úo pode ser aprovado.\n\nAs demais regras (N1, N2, N3) n├úo se aplicam diretamente ao caso, pois n├úo h├í informa├º├Áes sobre saldo de f├®rias ou a necessidade de venda de dias. A principal raz├úo para a negativa do pedido ├® a sobrecarga na equipe devido ao afastamento j├í existente.\n\n**Escala:**\nH├í um conflito, pois a equipe j├í tem 1 afastado (matr├¡cula 1006) no per├¡odo solicitado.\n\n**Sugest├úo de novo per├¡odo:** Come├ºar na segunda-feira, 2027-07-24, e ir at├® 2027-08-07 (15 dias corridos, 11 dias ├║teis).\n\n**Financeiro:**\nPara o pedido de venda de f├®rias, temos os seguintes dados:\n\n- **Dias vendidos**: 0\n- **Sal├írio base**: R$ 9.500,00\n\nA conta para a venda de f├®rias ├®:\n\n\\[\n\\text{Valor da venda de f├®rias} = \\frac{\\text{dias vendidos} \\times \\text{sal├írio base}}{30} = \\frac{0 \\times 9500}{30} = R\\$ 0,00\n\\]\n\nPortanto, o valor final da venda de f├®rias ├® **R$ 0,00**.\n\n### Observa├º├Áes\n- O pedido apresenta uma viola├º├úo objetiva (N5) devido a um afastamento j├í existente na equipe durante o per├¡odo solicitado.",
+  "despacho": "**DESPACHO OFICIAL DO RH**\n\nMatr├¡cula: 1004  \nTipo: F├®rias  \nPer├¡odo: 2027-07-12 a 2027-07-26  \nDecis├úo: INDEFERIDO  \n\nO pedido de f├®rias do servidor matr├¡cula 1004 foi indeferido em raz├úo da viola├º├úo da norma N5, que pro├¡be mais de um servidor afastado na mesma equipe durante o mesmo per├¡odo. Sugere-se novo per├¡odo de f├®rias de 2027-07-24 a 2027-08-07.  \n\nValor da venda de f├®rias: R$ 0,00.  \n\nAtenciosamente,  \n[Nome do Respons├ível]  \n[Cargo]  \n[Data]  "
+}
+
+=============== C11_diaria_exterior
+[1/9] guardrails
+[2/9] extra├º├úo
+[3/9] MCP: consultar_servidor
+[4/9] feriados
+[5/9] MCP: consultar_escala + regras
+[6/9] coordenador
+[tool] consultar_remuneracao(1003) EXECUTOU
+[7/9] redator
+[8/9] protocolo
+[9/9] MCP: registrar_decisao
+{
+  "resultado": "deferido",
+  "precisa_chefia": true,
+  "protocolo": "ec67dba1",
+  "violacoes": [],
+  "registro": {
+    "sucesso": false,
+    "erro": "o aprovador pendente_chefia n├úo ├® a chefia imediata (1011) do servidor (N8). Opera├º├úo negada e registrada em auditoria."
+  },
+  "parecer": "### PARECER ├ÜNICO\n\n#### Normas:\nAqui est├úo as regras que se aplicam ao seu pedido de di├íria e abono, com explica├º├Áes simples:\n\n### Regras de Di├íria\n1. **Regra N7**: Uma di├íria ├® concedida por dia com pernoite e meia di├íria no dia do retorno. Para viagens ao exterior, a di├íria ├® paga em d├│lares (USD) e convertida pela cota├º├úo do dia do pedido.\n   - **Explica├º├úo**: Como voc├¬ est├í pedindo uma di├íria para uma viagem ao exterior, ├® necess├írio que a di├íria seja calculada em USD. Al├®m disso, voc├¬ s├│ pode solicitar uma di├íria por dia de pernoite. Se n├úo houver pernoite, a di├íria n├úo ser├í aprovada.\n\n### Regras de Abono\n1. **Regra N6**: O abono (folga) ├® limitado a 1 dia ├║til por pedido e n├úo pode ser solicitado em fins de semana ou feriados.\n   - **Explica├º├úo**: Se voc├¬ estivesse pedindo um abono, ele n├úo poderia ser concedido se ca├¡sse em um fim de semana ou feriado. No entanto, seu pedido n├úo inclui um abono, ent├úo essa regra n├úo se aplica diretamente.\n\n### Conclus├úo\nSeu pedido de di├íria n├úo apresenta viola├º├Áes objetivas, mas ├® importante garantir que a di├íria seja solicitada corretamente, considerando a convers├úo para USD e a quantidade de pernoites.\n\n#### Escala:\nN├úo h├í conflitos para o per├¡odo de 08 a 11 de junho de 2027, pois n├úo h├í afastamentos de outros servidores na equipe Intelig├¬ncia. O pedido pode ser aprovado.\n\n#### Financeiro:\nPara a viagem a servi├ºo para o congresso em Buenos Aires, o c├ílculo das di├írias ├® o seguinte:\n\n1. **Per├¡odo da viagem**: 4 dias (de 08/06/2027 a 11/06/2027).\n2. **Di├írias**: 1 di├íria por pernoite + 0,5 di├íria no dia do retorno.\n   - Total de di├írias: \\(4 + 0.5 = 4.5\\) di├írias.\n\n3. **Valor da di├íria**: 320 USD.\n4. **Cota├º├úo do d├│lar**: 5.0165 BRL/USD.\n\n5. **C├ílculo do valor total em reais**:\n   \\[\n   \\text{Valor total} = 4.5 \\, \\text{di├írias} \\times 320 \\, \\text{USD} \\times 5.0165 \\, \\text{BRL/USD} = 7,200.00 \\, \\text{BRL}\n   \\]\n\nPortanto, o valor total das di├írias para a viagem ├® **R$ 7.200,00**.",
+  "despacho": "**DESPACHO OFICIAL DO RH**\n\nMatr├¡cula: 1003  \nTipo: Di├íria  \nPer├¡odo: 08 a 11 de junho de 2027 (retorno em 14 de junho de 2027)  \nDecis├úo: DEFERIDO, sujeito ├á aprova├º├úo da chefia imediata.  \n\nO pedido de di├íria foi analisado e n├úo apresenta viola├º├Áes. O valor total das di├írias para a viagem a Buenos Aires ├® de R$ 7.200,00, considerando 4,5 di├írias conforme as regras estabelecidas.  \n\nAtenciosamente,  \n[Nome do Respons├ível]  \n[Cargo]  \n[Data]  "
+}
+
+===================== E7 C1 =====================
+> python etapa07_grafo.py C1_abono_simples
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+[escala]      in├¡cio
+[normas]      in├¡cio
+[escala]      fim
+[normas]      fim
+[consolidar]  recebeu os 3 pareceres; viola├º├Áes: nenhuma
+[validar]     tentativa 1: OK
+[registrar]   {'sucesso': True, 'duplicado': False, 'protocolo': 'ae788d33'}
+
+[C1_abono_simples] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> registrar
+[C1_abono_simples] resultado: registrado  protocolo: ae788d33
+[C1_abono_simples] despacho: **DESPACHO OFICIAL DO RH**
+
+Referente ao pedido de abono da servidora Ana Ribeiro, matr├¡cula 1001, para o dia 2027-04-09, informamos que o mesmo foi DEFERIDO. O pedido atende ├ás regras estabelecidas, n├úo havendo viola├º├úo das normas de abono e escala. A servidora possui abonos restantes e n├úo h├í afastamentos na equipe "Plant├úo A" para a data solicitada. 
+
+Atenciosamente,  
+Recursos Humanos
+
+===================== E7 C6 =====================
+> python etapa07_grafo.py C6_conflito_de_escala
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+[escala]      in├¡cio
+[financeiro]  in├¡cio
+[normas]      in├¡cio
+[tool] consultar_remuneracao(1004) EXECUTOU
+[escala]      fim
+[financeiro]  fim
+[normas]      fim
+[consolidar]  recebeu os 3 pareceres; viola├º├Áes: ['N5: a equipe j├í tem 1 afastado(s) no per├¡odo: 1006 (2027-07-05 a 2027-07-19)']
+[validar]     tentativa 1: OK
+[registrar]   {'sucesso': True, 'duplicado': False, 'protocolo': '6f1b47d7'}
+
+[C6_conflito_de_escala] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> registrar
+[C6_conflito_de_escala] resultado: registrado  protocolo: 6f1b47d7
+[C6_conflito_de_escala] despacho: **DESPACHO OFICIAL DO RH**
+
+Referente ao pedido de f├®rias do servidor matr├¡cula 1004, com in├¡cio em 2027-07-12, informamos que o mesmo foi INDEFERIDO. A decis├úo se baseia na regra N5, que limita o n├║mero de servidores afastados na equipe a 1, e atualmente h├í um servidor afastado (matr├¡cula 1006) no per├¡odo de 2027-07-05 a 2027-07-19. Sugere-se o novo per├¡odo de f├®rias de 2027-07-31 a 2027-08-14. 
+
+Atenciosamente,  
+Recursos Humanos
+
+===================== E8 C2 =====================
+> python etapa07_grafo.py C2_ferias_com_venda
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+[escala]      in├¡cio
+[financeiro]  in├¡cio
+[normas]      in├¡cio
+[tool] consultar_remuneracao(1002) EXECUTOU
+[escala]      fim
+[normas]      fim
+[financeiro]  fim
+[consolidar]  recebeu os 3 pareceres; viola├º├Áes: nenhuma
+[validar]     tentativa 1: OK
+
+[C2_ferias_com_venda] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar
+[C2_ferias_com_venda] PAUSADO em ('aprovacao_chefia',): Aprova o despacho?
+   retome com: python etapa07_grafo.py --retomar C2_ferias_com_venda sim|"nao:motivo" <quem>
+
+===================== E8 pendentes =====================
+> python etapa07_grafo.py --pendentes
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+C2_ferias_com_venda: PAUSADO em ('aprovacao_chefia',)
+C6_conflito_de_escala: conclu├¡do
+C1_abono_simples: conclu├¡do
+
+===================== E8 C2 nao =====================
+> python etapa07_grafo.py --retomar C2_ferias_com_venda "nao:venda so 5 dias, nao 10" 1010
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+[validar]     tentativa 2: OK
+
+[C2_ferias_com_venda] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> aprovacao_chefia -> redigir_despacho -> validar
+[C2_ferias_com_venda] PAUSADO em ('aprovacao_chefia',): Aprova o despacho?
+   retome com: python etapa07_grafo.py --retomar C2_ferias_com_venda sim|"nao:motivo" <quem>
+
+===================== E8 C2 sim 1010 =====================
+> python etapa07_grafo.py --retomar C2_ferias_com_venda sim 1010
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+[registrar]   {'sucesso': True, 'duplicado': False, 'protocolo': 'b7b6f485'}
+
+[C2_ferias_com_venda] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> aprovacao_chefia -> redigir_despacho -> validar -> aprovacao_chefia -> registrar
+[C2_ferias_com_venda] resultado: registrado  protocolo: b7b6f485
+[C2_ferias_com_venda] despacho: **DESPACHO OFICIAL DO RH**
+
+Referente ao pedido de f├®rias do servidor Bruno Castro, matr├¡cula 1002, com in├¡cio em 2027-04-12, informamos que o pedido foi DEFERIDO. O servidor possui saldo de 30 dias de f├®rias e poder├í vender 5 dias, totalizando R$ 1583,33. O per├¡odo de afastamento est├í em conformidade com as normas, n├úo havendo conflitos na equipe "Plant├úo A". O retorno est├í previsto para 2027-04-27. 
+
+Atenciosamente,  
+Recursos Humanos
+
+===================== E8 C11 =====================
+> python etapa07_grafo.py C11_diaria_exterior
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+[escala]      in├¡cio
+[financeiro]  in├¡cio
+[normas]      in├¡cio
+[tool] consultar_remuneracao(1003) EXECUTOU
+[escala]      fim
+[normas]      fim
+[financeiro]  fim
+[consolidar]  recebeu os 3 pareceres; viola├º├Áes: nenhuma
+[validar]     tentativa 1: OK
+
+[C11_diaria_exterior] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar
+[C11_diaria_exterior] PAUSADO em ('aprovacao_chefia',): Aprova o despacho?
+   retome com: python etapa07_grafo.py --retomar C11_diaria_exterior sim|"nao:motivo" <quem>
+
+===================== E8 C11 sim 1011 (1a) =====================
+> python etapa07_grafo.py --retomar C11_diaria_exterior sim 1011
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+[registrar]   {'sucesso': True, 'duplicado': False, 'protocolo': 'ec67dba1'}
+
+[C11_diaria_exterior] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> aprovacao_chefia -> registrar
+[C11_diaria_exterior] resultado: registrado  protocolo: ec67dba1
+[C11_diaria_exterior] despacho: **DESPACHO OFICIAL DO RH**
+
+Referente ao pedido de di├írias da servidora Carla Nunes, matr├¡cula 1003, para o per├¡odo de 2027-06-08 a 2027-06-11, informamos que o mesmo foi **DEFERIDO**. O total de di├írias concedidas ├® de 4,5, resultando em um valor total de **R$ 7.223,76**. N├úo foram identificadas viola├º├Áes ├ás normas vigentes, e a escala da equipe permite o afastamento solicitado. 
+
+Atenciosamente,  
+Recursos Humanos
+
+===================== E8 C11 sim 1011 (2a) =====================
+> python etapa07_grafo.py --retomar C11_diaria_exterior sim 1011
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+[C11_diaria_exterior] nada pausado: n├úo h├í o que retomar.
+
+===================== E9 C2 =====================
+> python etapa07_grafo.py C2_ferias_com_venda
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+[escala]      in├¡cio
+[financeiro]  in├¡cio
+[normas]      in├¡cio
+[tool] consultar_remuneracao(1002) EXECUTOU
+[escala]      fim
+[financeiro]  fim
+[normas]      fim
+[consolidar]  recebeu os 3 pareceres; viola├º├Áes: nenhuma
+[validar]     tentativa 1: OK
+
+[C2_ferias_com_venda] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar
+[C2_ferias_com_venda] PAUSADO em ('aprovacao_chefia',): Aprova o despacho?
+   retome com: python etapa07_grafo.py --retomar C2_ferias_com_venda sim|"nao:motivo" <quem>
+
+===================== E9 autoaprovacao 1002 =====================
+> python etapa07_grafo.py --retomar C2_ferias_com_venda sim 1002
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+[registrar]   {'sucesso': False, 'erro': 'ningu├®m aprova o pr├│prio pedido (N8). Opera├º├úo negada e registrada em auditoria.'}
+
+[C2_ferias_com_venda] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> aprovacao_chefia -> registrar
+[C2_ferias_com_venda] resultado: negado_pelo_server  protocolo: b7b6f485
+[C2_ferias_com_venda] despacho: PEDIDO N├âO REGISTRADO: ningu├®m aprova o pr├│prio pedido (N8). Opera├º├úo negada e registrada em auditoria.
+
+===================== E9 C2 de novo =====================
+> python etapa07_grafo.py C2_ferias_com_venda
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+[escala]      in├¡cio
+[financeiro]  in├¡cio
+[normas]      in├¡cio
+[tool] consultar_remuneracao(1002) EXECUTOU
+[escala]      fim
+[normas]      fim
+[financeiro]  fim
+[consolidar]  recebeu os 3 pareceres; viola├º├Áes: nenhuma
+[validar]     tentativa 1: OK
+
+[C2_ferias_com_venda] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar
+[C2_ferias_com_venda] PAUSADO em ('aprovacao_chefia',): Aprova o despacho?
+   retome com: python etapa07_grafo.py --retomar C2_ferias_com_venda sim|"nao:motivo" <quem>
+
+===================== E9 chefia errada 1011 =====================
+> python etapa07_grafo.py --retomar C2_ferias_com_venda sim 1011
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+[registrar]   {'sucesso': False, 'erro': 'o aprovador 1011 n├úo ├® a chefia imediata (1010) do servidor (N8). Opera├º├úo negada e registrada em auditoria.'}
+
+[C2_ferias_com_venda] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> aprovacao_chefia -> registrar
+[C2_ferias_com_venda] resultado: negado_pelo_server  protocolo: b7b6f485
+[C2_ferias_com_venda] despacho: PEDIDO N├âO REGISTRADO: o aprovador 1011 n├úo ├® a chefia imediata (1010) do servidor (N8). Opera├º├úo negada e registrada em auditoria.
+
+===================== E9 sem guardrail C7 =====================
+> python etapa07_grafo.py --sem-guardrail C7_autoaprovacao
+[modelo] openai:gpt-4o-mini  [guardrail de entrada DESLIGADO]
+[escala]      in├¡cio
+[financeiro]  in├¡cio
+[normas]      in├¡cio
+[tool] consultar_remuneracao(1005) EXECUTOU
+[escala]      fim
+[financeiro]  fim
+[normas]      fim
+[consolidar]  recebeu os 3 pareceres; viola├º├Áes: ['N1: per├¡odo de 20 dias (m├¡nimo 5, saldo 10)', 'N2: 20 dias + 0 vendidos passam do saldo ou do limite de 10', 'N4: f├®rias exigem 30 dias de anteced├¬ncia']
+[validar]     tentativa 1: OK
+[registrar]   {'sucesso': True, 'duplicado': False, 'protocolo': '7d3934a6'}
+
+[C7_autoaprovacao] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> registrar
+[C7_autoaprovacao] resultado: registrado  protocolo: 7d3934a6
+[C7_autoaprovacao] despacho: **DESPACHO OFICIAL DO RH**
+
+Referente ao pedido de f├®rias da servidora matr├¡cula 1005, com in├¡cio em 2026-10-14, informamos que o mesmo foi INDEFERIDO. A decis├úo se baseia nas seguintes regras: N1 (per├¡odo m├¡nimo de 5 dias), N2 (saldo insuficiente para 20 dias corridos) e N4 (anteced├¬ncia de 30 dias). Sugere-se a reavalia├º├úo do pedido para um per├¡odo a partir de 2026-11-03, respeitando as normas vigentes. 
+
+Atenciosamente,  
+Recursos Humanos
+
+===================== E9 auditoria =====================
+> type saidas\auditoria.jsonl
+{"quando": "2026-10-13T14:16:20.275540", "thread_id": "C1_abono_simples", "quem": "sistema", "tool": "registrar_decisao", "protocolo": "ae788d33", "decisao_acesso": "ALLOW", "motivo": "registrado", "parametros": {"matricula": "1001", "tipo": "abono", "inicio": "2027-04-09", "fim": "2027-04-09", "decisao": "deferido", "aprovador": "sistema", "thread_id": "C1_abono_simples"}}
+{"quando": "2026-10-13T14:16:51.230685", "thread_id": "C6_conflito_de_escala", "quem": "sistema", "tool": "registrar_decisao", "protocolo": "6f1b47d7", "decisao_acesso": "ALLOW", "motivo": "registrado", "parametros": {"matricula": "1004", "tipo": "ferias", "inicio": "2027-07-12", "fim": "2027-07-26", "decisao": "indeferido", "aprovador": "sistema", "thread_id": "C6_conflito_de_escala"}}
+{"quando": "2026-10-13T14:17:36.689691", "thread_id": "C2_ferias_com_venda", "quem": "1010", "tool": "registrar_decisao", "protocolo": "b7b6f485", "decisao_acesso": "ALLOW", "motivo": "registrado", "parametros": {"matricula": "1002", "tipo": "ferias", "inicio": "2027-04-12", "fim": "2027-04-26", "decisao": "deferido", "aprovador": "1010", "thread_id": "C2_ferias_com_venda"}}
+{"quando": "2026-10-13T14:18:06.357342", "thread_id": "C11_diaria_exterior", "quem": "1011", "tool": "registrar_decisao", "protocolo": "ec67dba1", "decisao_acesso": "ALLOW", "motivo": "registrado", "parametros": {"matricula": "1003", "tipo": "diaria", "inicio": "2027-06-08", "fim": "2027-06-11", "decisao": "deferido", "aprovador": "1011", "thread_id": "C11_diaria_exterior"}}
+{"quando": "2026-10-13T14:18:44.277302", "thread_id": "C2_ferias_com_venda", "quem": "1002", "tool": "registrar_decisao", "protocolo": "b7b6f485", "decisao_acesso": "DENY", "motivo": "ningu├®m aprova o pr├│prio pedido (N8)", "parametros": {"matricula": "1002", "tipo": "ferias", "inicio": "2027-04-12", "fim": "2027-04-26", "decisao": "deferido", "aprovador": "1002", "thread_id": "C2_ferias_com_venda"}}
+{"quando": "2026-10-13T14:19:18.899178", "thread_id": "C2_ferias_com_venda", "quem": "1011", "tool": "registrar_decisao", "protocolo": "b7b6f485", "decisao_acesso": "DENY", "motivo": "o aprovador 1011 n├úo ├® a chefia imediata (1010) do servidor (N8)", "parametros": {"matricula": "1002", "tipo": "ferias", "inicio": "2027-04-12", "fim": "2027-04-26", "decisao": "deferido", "aprovador": "1011", "thread_id": "C2_ferias_com_venda"}}
+{"quando": "2026-10-13T14:19:41.138179", "thread_id": "C7_autoaprovacao", "quem": "sistema", "tool": "registrar_decisao", "protocolo": "7d3934a6", "decisao_acesso": "ALLOW", "motivo": "registrado", "parametros": {"matricula": "1005", "tipo": "ferias", "inicio": "2026-10-14", "fim": "2026-11-02", "decisao": "indeferido", "aprovador": "sistema", "thread_id": "C7_autoaprovacao"}}
+
+===================== E11 todos =====================
+> python etapa07_grafo.py --todos
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+[escala]      in├¡cio
+[normas]      in├¡cio
+[escala]      fim
+[normas]      fim
+[consolidar]  recebeu os 3 pareceres; viola├º├Áes: nenhuma
+[validar]     tentativa 1: n├úo diz claramente DEFERIDO
+[validar]     tentativa 2: OK
+[registrar]   {'sucesso': True, 'duplicado': False, 'protocolo': 'ae788d33'}
+
+[C1_abono_simples] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> redigir_despacho -> validar -> registrar
+[C1_abono_simples] resultado: registrado  protocolo: ae788d33
+[C1_abono_simples] despacho: **DESPACHO OFICIAL DO RH**
+
+Referente ao pedido de abono da servidora Ana Ribeiro, matr├¡cula 1001, para o dia 2027-04-09, informamos que a decis├úo ├® DEFERIDA. O pedido atende ├ás normas estabelecidas, n├úo havendo viola├º├úo das regras de abono e a equipe n├úo apresenta conflitos para o per├¡odo solicitado. 
+
+Atenciosamente,  
+Recursos Humanos
+[escala]      in├¡cio
+[financeiro]  in├¡cio
+[normas]      in├¡cio
+[tool] consultar_remuneracao(1002) EXECUTOU
+[escala]      fim
+[financeiro]  fim
+[normas]      fim
+[consolidar]  recebeu os 3 pareceres; viola├º├Áes: nenhuma
+[validar]     tentativa 1: OK
+
+[C2_ferias_com_venda] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar
+[C2_ferias_com_venda] PAUSADO em ('aprovacao_chefia',): Aprova o despacho?
+   retome com: python etapa07_grafo.py --retomar C2_ferias_com_venda sim|"nao:motivo" <quem>
+
+[C3_dado_de_saude] caminho: receber -> proteger_entrada -> recusar
+[C3_dado_de_saude] resultado: recusado  protocolo: None
+[C3_dado_de_saude] despacho: Por seguran├ºa, n├úo envie CPF por este canal. Reenvie o pedido informando s├│ a matr├¡cula.
+
+[C4_fora_do_escopo] caminho: receber -> proteger_entrada -> recusar
+[C4_fora_do_escopo] resultado: recusado  protocolo: None
+[C4_fora_do_escopo] despacho: Este canal atende apenas pedidos de f├®rias, abono e di├íria.
+
+[C5_sem_matricula] caminho: receber -> proteger_entrada -> extrair -> pedir_dados
+[C5_sem_matricula] resultado: pediu_dados  protocolo: None
+[C5_sem_matricula] despacho: Para seguir, informe a matr├¡cula e as datas exatas (AAAA-MM-DD).
+[escala]      in├¡cio
+[financeiro]  in├¡cio
+[normas]      in├¡cio
+[tool] consultar_remuneracao(1004) EXECUTOU
+[escala]      fim
+[financeiro]  fim
+[normas]      fim
+[consolidar]  recebeu os 3 pareceres; viola├º├Áes: ['N5: a equipe j├í tem 1 afastado(s) no per├¡odo: 1006 (2027-07-05 a 2027-07-19)']
+[validar]     tentativa 1: OK
+[registrar]   {'sucesso': True, 'duplicado': False, 'protocolo': '6f1b47d7'}
+
+[C6_conflito_de_escala] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> registrar
+[C6_conflito_de_escala] resultado: registrado  protocolo: 6f1b47d7
+[C6_conflito_de_escala] despacho: **DESPACHO OFICIAL DO RH**
+
+Referente ao pedido de f├®rias do servidor matr├¡cula 1004, Diego Matos, com data de in├¡cio em 2027-07-12, informamos que o pedido foi INDEFERIDO. A decis├úo se baseia na Regra N5, que limita o n├║mero de servidores afastados na equipe, sendo que j├í h├í 1 servidor em f├®rias no per├¡odo solicitado. 
+
+Sugere-se que o servidor inicie suas f├®rias em 2027-07-24 e termine em 2027-08-07. 
+
+Atenciosamente,  
+Recursos Humanos
+
+[C7_autoaprovacao] caminho: receber -> proteger_entrada -> recusar
+[C7_autoaprovacao] resultado: recusado  protocolo: None
+[C7_autoaprovacao] despacho: Este canal atende apenas pedidos de f├®rias, abono e di├íria.
+[escala]      in├¡cio
+[normas]      in├¡cio
+[escala]      fim
+[normas]      fim
+[consolidar]  recebeu os 3 pareceres; viola├º├Áes: nenhuma
+[validar]     tentativa 1: OK
+[registrar]   {'sucesso': True, 'duplicado': True, 'protocolo': 'ae788d33', 'mensagem': 'protocolo j├í registrado: nada foi gravado de novo'}
+
+[C8_idempotencia] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> registrar
+[C8_idempotencia] resultado: registrado  protocolo: ae788d33
+[C8_idempotencia] despacho: **DESPACHO OFICIAL DO RH**
+
+Referente ao pedido de abono da servidora Ana Ribeiro, matr├¡cula 1001, para o dia 2027-04-09, informamos que o mesmo foi DEFERIDO. O afastamento est├í dentro das normas estabelecidas, n├úo havendo conflitos na escala da equipe "Plant├úo A". O pedido respeita as regras de abonos restantes e a equipe pode operar adequadamente com a aus├¬ncia. 
+
+Atenciosamente,  
+Recursos Humanos
+
+[C9_divergencia] caminho: receber -> proteger_entrada -> extrair -> pedir_dados
+[C9_divergencia] resultado: pediu_dados  protocolo: None
+[C9_divergencia] despacho: Para seguir, informe a matr├¡cula e as datas exatas (AAAA-MM-DD).
+
+[C10_zona_cinzenta] caminho: receber -> proteger_entrada -> extrair -> pedir_dados
+[C10_zona_cinzenta] resultado: pediu_dados  protocolo: None
+[C10_zona_cinzenta] despacho: Para seguir, informe a matr├¡cula e as datas exatas (AAAA-MM-DD).
+[escala]      in├¡cio
+[financeiro]  in├¡cio
+[normas]      in├¡cio
+[tool] consultar_remuneracao(1003) EXECUTOU
+[escala]      fim
+[normas]      fim
+[financeiro]  fim
+[consolidar]  recebeu os 3 pareceres; viola├º├Áes: nenhuma
+[validar]     tentativa 1: OK
+
+[C11_diaria_exterior] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar
+[C11_diaria_exterior] PAUSADO em ('aprovacao_chefia',): Aprova o despacho?
+   retome com: python etapa07_grafo.py --retomar C11_diaria_exterior sim|"nao:motivo" <quem>
+[escala]      in├¡cio
+[financeiro]  in├¡cio
+[normas]      in├¡cio
+[tool] consultar_remuneracao(1003) EXECUTOU
+[escala]      fim
+[normas]      fim
+[financeiro]  fim
+[consolidar]  recebeu os 3 pareceres; viola├º├Áes: ['N3: as f├®rias n├úo podem come├ºar em 2027-04-30 (v├®spera de feriado/fim de semana)']
+[validar]     tentativa 1: OK
+[registrar]   {'sucesso': True, 'duplicado': False, 'protocolo': '7c458e62'}
+
+[C12_inicio_proibido] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> registrar
+[C12_inicio_proibido] resultado: registrado  protocolo: 7c458e62
+[C12_inicio_proibido] despacho: **DESPACHO OFICIAL DO RH**
+
+Referente ao pedido de f├®rias da servidora Carla Nunes, matr├¡cula 1003, com in├¡cio em 2027-04-30 e t├®rmino em 2027-05-14, informamos que o pedido foi INDEFERIDO. A decis├úo se baseia na Regra N3, que pro├¡be o in├¡cio das f├®rias em dias que antecedem feriados, sendo 30 de abril uma v├®spera de feriado. Sugere-se que o novo per├¡odo de f├®rias seja solicitado a partir de 2027-05-02. 
+
+Atenciosamente,  
+Recursos Humanos
+
+===================== E11 C2 sim 1010 =====================
+> python etapa07_grafo.py --retomar C2_ferias_com_venda sim 1010
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+[registrar]   {'sucesso': True, 'duplicado': False, 'protocolo': 'b7b6f485'}
+
+[C2_ferias_com_venda] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> aprovacao_chefia -> registrar
+[C2_ferias_com_venda] resultado: registrado  protocolo: b7b6f485
+[C2_ferias_com_venda] despacho: **DESPACHO OFICIAL DO RH**
+
+Referente ao pedido de f├®rias do servidor Bruno Castro, matr├¡cula 1002, com in├¡cio em 2027-04-12, informamos que o pedido foi DEFERIDO. O servidor possui saldo de 30 dias de f├®rias e a venda de 10 dias est├í dentro do limite permitido. O total a ser considerado ├® de R$ 6.316,67. 
+
+Atenciosamente,  
+[Nome do Respons├ível]  
+[Cargo]  
+Recursos Humanos
+
+===================== E11 C11 sim 1011 =====================
+> python etapa07_grafo.py --retomar C11_diaria_exterior sim 1011
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+[registrar]   {'sucesso': True, 'duplicado': False, 'protocolo': 'ec67dba1'}
+
+[C11_diaria_exterior] caminho: receber -> proteger_entrada -> extrair -> identificar_servidor -> calcular_periodo -> escala -> financeiro -> normas -> consolidar -> redigir_despacho -> validar -> aprovacao_chefia -> registrar
+[C11_diaria_exterior] resultado: registrado  protocolo: ec67dba1
+[C11_diaria_exterior] despacho: **DESPACHO OFICIAL DO RH**
+
+Referente ao pedido de di├írias da servidora Carla Nunes, matr├¡cula 1003, para o per├¡odo de 2027-06-08 a 2027-06-11, informamos que o mesmo foi DEFERIDO. O total de di├írias a ser recebido ├® de R$ 5618,88, correspondente a 3,5 di├írias, conforme as regras estabelecidas. N├úo foram identificadas viola├º├Áes ├ás normas vigentes, e a escala da equipe permite o afastamento solicitado. 
+
+Atenciosamente,  
+Recursos Humanos
+
+===================== E10 observabilidade C2 =====================
+> python etapa10_observabilidade.py C2_ferias_com_venda
+{
+  "nos": [
+    "receber",
+    "proteger_entrada",
+    "extrair",
+    "identificar_servidor",
+    "calcular_periodo",
+    "escala",
+    "financeiro",
+    "normas",
+    "consolidar",
+    "redigir_despacho",
+    "validar",
+    "aprovacao_chefia",
+    "registrar"
+  ],
+  "segundos_total": 29.68,
+  "mais_lento": [
+    "normas",
+    8.516
+  ],
+  "tokens_total": 0
+}
+
+===================== E11 mermaid =====================
+> python etapa07_grafo.py --mermaid
+[modelo] openai:gpt-4o-mini  [guardrail de entrada ligado]
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	receber(receber)
+	proteger_entrada(proteger_entrada)
+	recusar(recusar)
+	extrair(extrair)
+	pedir_dados(pedir_dados)
+	identificar_servidor(identificar_servidor)
+	calcular_periodo(calcular_periodo)
+	normas(normas)
+	escala(escala)
+	financeiro(financeiro)
+	consolidar(consolidar)
+	redigir_despacho(redigir_despacho)
+	validar(validar)
+	aprovacao_chefia(aprovacao_chefia)
+	registrar(registrar)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> receber;
+	aprovacao_chefia -. &nbsp;redigir&nbsp; .-> redigir_despacho;
+	aprovacao_chefia -.-> registrar;
+	calcular_periodo --> escala;
+	calcular_periodo --> financeiro;
+	calcular_periodo --> normas;
+	consolidar --> redigir_despacho;
+	escala --> consolidar;
+	extrair -. &nbsp;ok&nbsp; .-> identificar_servidor;
+	extrair -. &nbsp;incompleto&nbsp; .-> pedir_dados;
+	financeiro --> consolidar;
+	identificar_servidor -. &nbsp;ok&nbsp; .-> calcular_periodo;
+	identificar_servidor -. &nbsp;nao_encontrado&nbsp; .-> pedir_dados;
+	normas --> consolidar;
+	proteger_entrada -. &nbsp;ok&nbsp; .-> extrair;
+	proteger_entrada -. &nbsp;bloqueado&nbsp; .-> recusar;
+	receber --> proteger_entrada;
+	redigir_despacho --> validar;
+	validar -. &nbsp;chefia&nbsp; .-> aprovacao_chefia;
+	validar -. &nbsp;redigir&nbsp; .-> redigir_despacho;
+	validar -.-> registrar;
+	pedir_dados --> __end__;
+	recusar --> __end__;
+	registrar --> __end__;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc
+
+
+===================== CONFERIR =====================
+> python conferir.py --opcionais
+conferir.py  (sem LLM, com opcionais)
+
+Etapa 0: Prepara├º├úo e tabela N1ÔÇôN10   (onde olhar: PASSO_A_PASSO.md, Etapa 0)
+  [OK]       arquivos de dados/ carregam
+  [OK]       tabela N1ÔÇôN10 preenchida no ENTREGA.md  (10 de 10)
+
+Etapa 1: Primeiro agente com tool   (onde olhar: etapa01_agente.py; aula1/segundo_agente.py)
+  [OK]       1.1 tool consultar_servidor (1002 sem sal├írio; 9999 n├úo encontrada)
+  [OK]       1.2 AtendenteRH com a tool
+
+Etapa 2: Extra├º├úo estruturada   (onde olhar: etapa02_extracao.py; aula2/agente_output2.py)
+  [OK]       2.1 modelo Pedido com todos os campos e descri├º├Áes
+  [OK]       2.2 extrator com output_type=Pedido e instru├º├Áes completas
+
+Etapa 3: Guardrails de entrada   (onde olhar: etapa03_guardrails.py; aula2/agente_guardrail.py)
+  [OK]       3.1 regex de CPF e CID (pronta: n├úo mexa nela)
+  [OK]       3.2 classificador com output_type=AvaliacaoEscopo
+  [OK]       3.4 os @input_guardrail (o de dado sens├¡vel dispara no C3 e n├úo no C2)
+
+Etapa 4: APIs com resili├¬ncia (pronta)   (onde olhar: etapa04_ferramentas.py)
+  [OK]       etapa04_ferramentas.py responde como esperado (├® a pe├ºa pronta: n├úo mexa nela)
+
+Etapa 5: MCP Server do RH   (onde olhar: etapa05_mcp_rh.py e etapa05_cliente_mcp.py; aula6/desafio2/mcp_unidades.py)
+  [OK]       chamar_mcp (pronto) fala com o seu server
+  [OK]       5.1 as 5 tools de leitura
+  [OK]       5.2 registrar_decisao grava e n├úo duplica
+
+Etapa 6: Especialistas e fluxo linear (Marco m├¡nimo)   (onde olhar: etapa06_agentes.py e etapa06_linear.py; aula4/ex03_agente_as_tool.py)
+  [OK]       6.0 etapa06_regras.py (pronta)
+  [OK]       6.1 cada especialista s├│ com as suas tools
+  [OK]       6.2 Coordenador com os especialistas como as_tool
+
+Etapa 7: O grafo   (onde olhar: etapa07_grafo.py; aula6/desafio2/main.py e aula7/exemplos/08_paralelismo/main.py)
+  [OK]       7.5 o grafo compila com todos os n├│s
+  [OK]       C3 dado sens├¡vel -> recusar
+  [OK]       C4 fora do escopo -> recusar
+  [OK]       C5 sem matr├¡cula -> pedir_dados
+  [OK]       C1 abono -> registra deferido (paralelismo + ciclo)
+  [OK]       C6 conflito de escala -> registra indeferido (N5)
+  [OK]       C12 in├¡cio proibido -> registra indeferido (N3)
+
+Etapa 8: Persist├¬ncia e aprova├º├úo da chefia   (onde olhar: etapa07_grafo.py; aula7/exemplos/07_aprovacao_revisao/main.py)
+  [OK]       8.2 o C2 pausa na chefia sem gravar nada
+  [OK]       8.4 --pendentes mostra o C2 pausado
+  [OK]       8.3/8.4 rejeita, refaz, aprova (1010) e grava
+  [OK]       8.3 duas rejei├º├Áes -> indeferido_pela_chefia
+
+Etapa 9: Seguran├ºa (Marco completo)   (onde olhar: etapa05_mcp_rh.py e etapa07_grafo.py; aula5/exemplos/10_seguranca/server_seguro.py)
+  [OK]       9.2 o server nega: sem token, enum, autoaprova├º├úo, chefia errada
+  [OK]       9.3 auditoria com ALLOW e DENY, sem o token
+  [OK]       9.4 guardrail de sa├¡da: despacho com CPF n├úo ├® gravado
+
+Etapa 10: Observabilidade   (onde olhar: etapa10_governanca.py e etapa10_observabilidade.py; aula5/exemplos/11_observabilidade/)
+  [OK]       10.1 o hook registra tool, argumentos e tokens
+  [OK]       10.2/10.3 medido() grava a m├®trica e resumo() resume
+
+Etapa 11: Demonstra├º├úo e entrega   (onde olhar: ENTREGA.md)
+  [OK]       tabela dos 12 casos preenchida no ENTREGA.md
+
+Etapa ­ƒåòA: Vota├º├úo em paralelo (opcional)   (onde olhar: etapa02_extracao.py)
+  [OK]       ­ƒåò A.1 tr├¬s instru├º├Áes diferentes
+  [OK]       ­ƒåò A.2 os 3 extratores rodam em paralelo e a vota├º├úo decide  (3 votos em 0.21s)
+
+Etapa ­ƒåòB: Hooks que barram (opcional)   (onde olhar: etapa10_governanca.py)
+  [OK]       ­ƒåò B barra tool fora da lista e or├ºamento estourado
+
+Etapa ­ƒåòC: Humano na entrada (opcional)   (onde olhar: etapa07_grafo.py)
+  [OK]       ­ƒåò C o C10 pausa na triagem e o 'nao' recusa
+
+======================================================================
+  Etapa 0    Ô£à completa        Prepara├º├úo e tabela N1ÔÇôN10
+  Etapa 1    Ô£à completa        Primeiro agente com tool
+  Etapa 2    Ô£à completa        Extra├º├úo estruturada
+  Etapa 3    Ô£à completa        Guardrails de entrada
+  Etapa 4    Ô£à completa        APIs com resili├¬ncia (pronta)
+  Etapa 5    Ô£à completa        MCP Server do RH
+  Etapa 6    Ô£à completa        Especialistas e fluxo linear (Marco m├¡nimo)
+  Etapa 7    Ô£à completa        O grafo
+  Etapa 8    Ô£à completa        Persist├¬ncia e aprova├º├úo da chefia
+  Etapa 9    Ô£à completa        Seguran├ºa (Marco completo)
+  Etapa 10   Ô£à completa        Observabilidade
+  Etapa 11   Ô£à completa        Demonstra├º├úo e entrega
+  Etapa ­ƒåòA   Ô£à completa        Vota├º├úo em paralelo (opcional)
+  Etapa ­ƒåòB   Ô£à completa        Hooks que barram (opcional)
+  Etapa ­ƒåòC   Ô£à completa        Humano na entrada (opcional)
+
+  ­ƒÄ» Marco m├¡nimo atingido (Etapas 0 a 6).
+  ­ƒÅü Marco completo atingido (Etapas 0 a 9).
+
+  Dica: rode tamb├®m `python conferir.py --llm` para conferir as partes que dependem do modelo.
