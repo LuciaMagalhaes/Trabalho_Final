@@ -131,23 +131,27 @@ def pedir_dados(estado: Estado) -> dict:
 # ------------------------------------------------------------------ ETAPA 7.2: entrada
 def proteger_entrada(estado: Estado) -> dict:
     
-    if GUARDRAIL_LIGADO:
-        dado = encontrar_dado_sensivel(estado["texto"])
+    if not GUARDRAIL_LIGADO:                                   # ETAPA 9.5: --sem-guardrail
+        return {"bloqueado": False, "caminho": ["proteger_entrada"]}
+    
+    dado = encontrar_dado_sensivel(estado["texto"])            # 1) regex, sem LLM
     if dado:
         return {"bloqueado": True, "motivo_bloqueio": MENSAGENS[dado], "caminho": ["proteger_entrada"]}
-    nota, motivo = nota_escopo(estado["texto"])
-    limiar = LIMIAR_BLOQUEIO if USAR_TRIAGEM_HUMANA else LIMIAR
+    nota, motivo = nota_escopo(estado["texto"])                # 2) classificador LLM
+    limiar = LIMIAR_BLOQUEIO if USAR_TRIAGEM_HUMANA else LIMIAR  # 🆕 C: com a triagem, só bloqueia a partir de 0.8
     if nota >= limiar:
         return {"bloqueado": True, "motivo_bloqueio": MENSAGENS["fora_do_escopo"], "nota_escopo": nota,
                 "caminho": ["proteger_entrada"]}
     return {"bloqueado": False, "nota_escopo": nota, "caminho": ["proteger_entrada"]}
-    
- 
-
 
 
 def rotear_entrada(estado: Estado) -> str:    
-    return "bloqueado" if estado.get("bloqueado") else "ok"
+    if estado.get("bloqueado"):
+        return "bloqueado"
+    if USAR_TRIAGEM_HUMANA and estado.get("nota_escopo", 0.0) >= LIMIAR_OK:   # 🆕 C: zona de dúvida
+        return "duvida"
+    return "ok"
+
 
 # 🆕 C.2 (opcional) -- resposta = interrupt({"pergunta": "Este texto deve seguir como pedido ao RH?",
 #                                  "texto": ..., "nota": ..., "quem_decide": "atendente do RH"})
